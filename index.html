@@ -1,367 +1,259 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#ffffff">
-<title>Doomsday Trainer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Doomsday Trainer</title>
 
-<style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:18px;max-width:760px;padding-bottom:160px;}
-  h1{font-size:22px;margin:0 0 6px;}
-  .muted{color:#555;font-size:14px;margin:0 0 14px;}
-  .card{border:1px solid #ddd;border-radius:14px;padding:14px;margin:12px 0;}
-  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
-  label{font-size:14px;display:flex;align-items:center;gap:6px;}
-  input[type="number"]{font-size:18px;padding:10px;border-radius:10px;border:1px solid #ccc;width:110px;}
-  input[type="checkbox"],input[type="radio"]{transform:scale(1.15);}
-  .disabledRow{opacity:.5; pointer-events:none;}
-  .hint{font-size:12px;color:#666;margin-top:6px;}
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#ffffff">
 
-  button{font-size:18px;padding:12px 14px;border-radius:12px;border:1px solid #bbb;background:#fff;cursor:pointer;}
-  button:active{transform:translateY(1px);}
+  <style>
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:18px;
+      max-width:760px;
+      padding-bottom:160px; /* riserva spazio per bottomBar */
+    }
+    h1{font-size:22px;margin:0 0 6px;}
+    .muted{color:#555;font-size:14px;margin:0 0 14px;}
 
-  .date{font-size:44px;font-weight:800;text-align:center;margin:18px 0 6px;}
-  .answer{
-    font-size:28px;
-    font-weight:700;
-    text-align:center;
-    margin:8px 0 8px;
-    line-height:1.15;
-  }
-  .leapNote{
-    font-size:16px;
-    font-style:italic;
-    font-weight:400;
-    margin-top:6px;
-    color:#444;
-  }
+    .card{border:1px solid #ddd;border-radius:14px;padding:14px;margin:12px 0;}
+    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+    label{font-size:14px;display:flex;align-items:center;gap:8px;}
 
-  .afterReveal{
-    margin-top:10px;
-    display:none;
-    justify-content:center;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-  .btnSmall{
-    font-size:16px;
-    padding:10px 12px;
-    border-radius:12px;
-  }
-  .btnDanger{
-    background:#fff;
-    border:1px solid #bbb;
-    color:#333;
-    font-weight:600;
-  }
-  .btnOk{
-    border-color:#bbb;
-    background:#fff;
-    font-weight:600;
-  }
+    input[type="number"]{
+      font-size:18px;padding:10px;border-radius:10px;border:1px solid #ccc;width:120px;
+    }
+    input[type="checkbox"],input[type="radio"]{transform:scale(1.15);}
 
-  /* Bottom bar */
-  .bottomBar{
-    position:fixed;
-    left:0; right:0; bottom:160px;
-    background:#fff;
-    padding:10px;
-    display:flex;
-    justify-content:center;
-    z-index:999;
-    border-top:1px solid #eee;
-  }
-  .bottomBar button{
-    font-size:22px;
-    padding:26px 22px;
-    width:92%;
-    max-width:520px;
-    border-radius:16px;
-  }
-  .bottomReveal{font-weight:800;}
-  .bottomNext{background:#eaf7ea;border-color:#1f7a1f;font-weight:900;}
-  .spacer{height:160px;}
+    button{
+      font-size:18px;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid #bbb;
+      background:#fff;
+      cursor:pointer;
+    }
+    button:active{transform:translateY(1px);}
+    button:disabled{opacity:.45; cursor:not-allowed;}
 
-  /* Stats */
-  .pill{font-size:12px;color:#444;border:1px solid #ddd;padding:4px 8px;border-radius:999px;background:#fafafa;}
-  .footerRow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+    /* Date card */
+    .date{font-size:44px;font-weight:800;text-align:center;margin:18px 0 6px;}
+    .answer{
+      font-size:28px;
+      font-weight:700;
+      text-align:center;
+      margin:8px 0 14px;
+      line-height:1.15;
+    }
+    .leapNote{
+      font-size:16px;
+      font-style:italic;
+      font-weight:400;
+      margin-top:6px;
+      color:#444;
+    }
 
-  /* --- range grid mobile fix --- */
-  .rangeGrid{
-  display:grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap:14px;
-  align-items:center;
-  }
+    /* Setup: Range grid */
+    .rangeGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      align-items:center;
+      margin-top:10px;
+    }
+    .mode1900Wrap{
+      grid-column:1 / -1;  /* checkbox sotto */
+      margin-top:2px;
+    }
 
-  @media (max-width:420px){
-.rangeGrid{
-  display:grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap:14px;
-  align-items:center;
-}
+    .radioMode{
+      display:flex;
+      gap:18px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
 
-.mode1900Wrap{
-  grid-column:1 / -1;   /* forza riga sotto */
-  margin-top:4px;
-}
+    .setupDisabled{
+      opacity:.55;
+      pointer-events:none;
+    }
 
-.statsTop{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
+    /* Track toggle line (between cards) */
+    .trackLine{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:10px 4px;
+    }
 
-.statsLast{
-  text-align:center;
-  font-size:26px;
-  font-weight:800;
-  margin:10px 0 6px;
-  text-decoration:underline;
-}
+    /* Save button under answer */
+    .saveWrap{
+      display:flex;
+      justify-content:center;
+      margin-top:6px;
+    }
+    .btnSmall{
+      font-size:18px;
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid #bbb;
+      background:#fff;
+      font-weight:600;
+    }
+    .btnOk, .btnDanger{
+      background:#fff;
+      border:1px solid #bbb;
+      color:#000;
+      font-weight:600;
+    }
 
-.statsBox{
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:12px 14px;
-  margin-top:10px;
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:10px 18px;
-}
+    /* Stats layout (as agreed) */
+    .statsTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      font-size:12px;
+      color:#444;
+      border:1px solid #ddd;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#fafafa;
+      white-space:nowrap;
+    }
+    #liveTimer{font-size:14px;color:#555;}
 
-.statRow{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  font-size:16px;
-}
+    .statsLast{
+      text-align:center;
+      font-size:26px;
+      font-weight:800;
+      margin:10px 0 6px;
+      text-decoration:underline;
+    }
 
+    #statsCard .statsBox{
+      border:1px solid #ddd;
+      border-radius:12px;
+      padding:12px 14px;
+      margin-top:10px;
+      display:grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap:10px 18px !important;
+    }
+    #statsCard .statRow{
+      display:flex !important;
+      justify-content:space-between !important;
+      gap:10px !important;
+      font-size:16px;
+    }
 
-.statsBox{
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:12px 14px;
-  margin-top:10px;
-
-  display:grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap:10px 18px !important;
-}
-
-.statRow{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  font-size:16px;
-}
-
-@media (max-width:420px){
-  .statsBox{
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* hard override: stats must be 2 columns */
-#statsCard .statsBox{
-  display:grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap:10px 18px !important;
-}
-
-#statsCard .statRow{
-  display:flex !important;
-  justify-content:space-between !important;
-  gap:10px !important;
-}
-
-</style>
+    /* Bottom bar: fixed, stable position */
+    .bottomBar{
+      position:fixed;
+      left:0; right:0; bottom:160px;
+      background:#fff;
+      padding:10px;
+      display:flex;
+      justify-content:center;
+      z-index:999;
+      border-top:1px solid #eee;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+    .bottomBar button{
+      font-size:22px;
+      padding:26px 22px;
+      width:92%;
+      max-width:520px;
+      border-radius:16px;
+    }
+    .bottomReveal{font-weight:800;}
+    .bottomNext{
+      background:#eaf7ea;
+      border-color:#1f7a1f;
+      font-weight:900;
+    }
+  </style>
 </head>
 
 <body>
-<h1>Doomsday Trainer</h1>
-<p class="muted">by L. Marenco</p>
+  <h1>Doomsday Trainer</h1>
+  <p class="muted">by L. Marenco</p>
 
-<div class="card">
+  <!-- SETUP -->
+  <div class="card">
+    <div class="radioMode">
+      <label><input type="radio" name="srcMode" value="range" checked>Range</label>
+      <label><input type="radio" name="srcMode" value="saved">Salvate (<span id="savedCount">0</span>)</label>
 
-  <!-- A) Sorgente date: radio -->
-  <div class="row" style="margin-bottom:10px;">
-    <label><input type="radio" name="srcMode" id="srcRange" value="range" checked>Range</label>
-    <label><input type="radio" name="srcMode" id="srcSaved" value="saved"><span id="savedLabel">Salvate (0)</span></label>
+      <button id="clearSavedBtn" class="btnSmall" style="display:none;">Svuota salvate</button>
+    </div>
+
+    <div id="rangeBlock">
+      <div class="rangeGrid" id="rangeRow">
+        <label>Min <input id="minY" type="number" value="1800"></label>
+        <label>Max <input id="maxY" type="number" value="2199"></label>
+        <label class="mode1900Wrap"><input id="mode1900" type="checkbox">1900–2099</label>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <strong>Formato data:</strong>
+      <label><input type="radio" name="fmt" value="num" checked>dd/mm/yyyy</label>
+      <label><input type="radio" name="fmt" value="text">dd month yyyy</label>
+    </div>
   </div>
 
-  <!-- B) Range anni (disabilitato se Salvate) -->
-<div class="rangeGrid" id="rangeRow">
+  <!-- TRACK TOGGLE BETWEEN -->
+  <label class="trackLine">
+    <input id="track" type="checkbox">
+    Attiva statistiche
+  </label>
 
-  <label>Min<input id="minY" type="number" value="1800"></label>
-  <label>Max<input id="maxY" type="number" value="2199"></label>
+  <!-- DATE / ANSWER -->
+  <div class="card">
+    <div class="date" id="dateOut">—</div>
+    <div class="answer" id="answerOut"></div>
 
-  <div></div> <!-- spacer colonna -->
-
-  <label class="mode1900Wrap"><input id="mode1900" type="checkbox">1900–2099</label>
-
-</div>
-
-  <div class="row" style="margin-top:12px;">
-
+    <div class="saveWrap">
+      <button id="saveBtn" class="btnSmall btnOk" style="display:none;">Salva</button>
+    </div>
   </div>
 
-  <!-- C) Radio formato data -->
-  <div class="row" style="margin-top:12px;">
-    <strong>Formato data:</strong>
-    <label><input type="radio" name="fmt" value="num" checked>dd/mm/yyyy</label>
-    <label><input type="radio" name="fmt" value="text">dd month yyyy</label>
+  <!-- STATS -->
+  <div class="card" id="statsCard" style="display:none;">
+    <div class="statsTop">
+      <div class="row">
+        <span class="pill">Statistiche tempi (secondi)</span>
+        <span class="muted" id="liveTimer"></span>
+      </div>
+      <button id="resetStatsBtn" class="btnSmall">Reset</button>
+    </div>
+
+    <div class="statsLast" id="lastBig">—</div>
+
+    <div class="statsBox">
+      <div class="statRow"><span>Prove</span><strong id="nOut">0</strong></div>
+      <div class="statRow"><span>Mediana</span><strong id="medOut">—</strong></div>
+      <div class="statRow"><span>Migliore</span><strong id="bestOut">—</strong></div>
+      <div class="statRow"><span>Peggiore</span><strong id="worstOut">—</strong></div>
+    </div>
   </div>
 
-  <div class="hint" id="rangeHint" style="display:none;">In modalità “Salvate” il range anni non si applica.</div>
-</div>
-  
-<label style="display:flex; align-items:center; gap:8px; margin:10px 4px;"><input id="track" type="checkbox">Attiva statistiche</label>
-
-<div class="card">
-  <div class="date" id="dateOut">—</div>
-  <div class="answer" id="answerOut"></div>
-
-  <!-- Azioni visibili SOLO dopo reveal -->
-  <div class="afterReveal" id="afterReveal">
-    <button id="saveBtn" class="btnSmall btnOk">Salva</button>
-    <button id="clearSavedBtn" class="btnSmall btnDanger" style="display:none;">Svuota salvate</button>
+  <!-- BOTTOM BUTTON -->
+  <div class="bottomBar">
+    <button id="revealBtn" class="bottomReveal" disabled>Mostra</button>
   </div>
-</div>
-
-<div class="card" id="statsCard" style="display:none;">
-<div class="statsTop">
-  <div class="row">
-    <span class="pill">Statistiche tempi (secondi)</span>
-    <span class="muted" id="liveTimer"></span>
-  </div>
-  <button id="resetStatsBtn" class="btnSmall">Reset</button>
-</div>
-
-  <div class="statsLast" id="lastBig">—</div>
-
-  <div class="statsBox">
-    <div class="statRow"><span>Prove</span><strong id="nOut">0</strong></div>
-    <div class="statRow"><span>Mediana</span><strong id="medOut">—</strong></div>
-    <div class="statRow"><span>Migliore</span><strong id="bestOut">—</strong></div>
-    <div class="statRow"><span>Peggiore</span><strong id="worstOut">—</strong></div>
-  </div>
-</div>
-
-<div class="bottomBar">
-  <button id="revealBtn" class="bottomReveal" disabled>Mostra</button>
-</div>
 
 <script>
+  // ====== Data helpers ======
   const giorni=["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
   const mesi=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
-
-  // ===== Persistenza "Salvate" =====
-  const SAVED_KEY = "doomsday_saved_v1";
-  let saved = []; // array di {y,m,d}
-
-  function dateKey(y,m,d){ return `${y}-${m}-${d}`; }
-
-  function loadSaved(){
-    try{
-      const raw = localStorage.getItem(SAVED_KEY);
-      saved = raw ? JSON.parse(raw) : [];
-      if(!Array.isArray(saved)) saved = [];
-    }catch(e){
-      saved = [];
-    }
-  }
-
-  function persistSaved(){
-    localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
-  }
-
-  function savedCount(){ return saved.length; }
-
-  function isSavedDate(y,m,d){
-    const k = dateKey(y,m,d);
-    return saved.some(x => dateKey(x.y,x.m,x.d) === k);
-  }
-
-  function updateSavedLabel(){
-    savedLabel.textContent = `Salvate (${savedCount()})`;
-  }
-
-  function addSaved(y,m,d){
-    if(isSavedDate(y,m,d)) return;
-    saved.push({y,m,d});
-    persistSaved();
-    updateSavedLabel();
-  }
-
-  function removeSaved(y,m,d){
-    const k = dateKey(y,m,d);
-    saved = saved.filter(x => dateKey(x.y,x.m,x.d) !== k);
-    persistSaved();
-    updateSavedLabel();
-  }
-
-  function clearSaved(){
-    saved = [];
-    persistSaved();
-    updateSavedLabel();
-  }
-
-  // ===== Stato app =====
-  let cur=null;
-  let shown=false;
-
-  // timing
-  let tStart=null;
-  let timerInterval=null;
-  const times=[];
-
-  // DOM
-  const srcRange=document.getElementById("srcRange");
-  const srcSaved=document.getElementById("srcSaved");
-  const rangeRow=document.getElementById("rangeRow");
-  const rangeHint=document.getElementById("rangeHint");
-
-  const mode1900=document.getElementById("mode1900");
-  const track=document.getElementById("track");
-
-  const savedLabel=document.getElementById("savedLabel");
-
-  const minY=document.getElementById("minY");
-  const maxY=document.getElementById("maxY");
-  const dateOut=document.getElementById("dateOut");
-  const answerOut=document.getElementById("answerOut");
-  const revealBtn=document.getElementById("revealBtn");
-
-  const afterReveal=document.getElementById("afterReveal");
-  const saveBtn=document.getElementById("saveBtn");
-  const clearSavedBtn=document.getElementById("clearSavedBtn");
-
-  const statsCard=document.getElementById("statsCard");
-  const resetStatsBtn=document.getElementById("resetStatsBtn");
-  const liveTimer=document.getElementById("liveTimer");
-  const nOut=document.getElementById("nOut");
-  const medOut=document.getElementById("medOut");
-  const bestOut=document.getElementById("bestOut");
-  const worstOut=document.getElementById("worstOut");
-
-  function isSavedMode(){ return srcSaved.checked; }
-
-  function syncRangeEnabled(){
-    const savedMode = isSavedMode();
-    if(savedMode){
-      rangeRow.classList.add("disabledRow");
-      rangeHint.style.display="block";
-    }else{
-      rangeRow.classList.remove("disabledRow");
-      rangeHint.style.display="none";
-    }
-  }
 
   function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
   function isLeap(y){return y%4===0 && (y%100!==0 || y%400===0);}
@@ -379,7 +271,6 @@
   function getFormat(){
     return document.querySelector('input[name="fmt"]:checked').value;
   }
-
   function fmtDate(d,m,y){
     if(getFormat()==="num"){
       return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y;
@@ -387,14 +278,8 @@
     return d+" "+mesi[m-1]+" "+y;
   }
 
-  function fmtSec(x){
-    if(!Number.isFinite(x)) return "—";
-    return x.toFixed(2);
-  }
-  function mean(arr){
-    if(arr.length===0) return NaN;
-    return arr.reduce((s,v)=>s+v,0)/arr.length;
-  }
+  // ====== Stats helpers ======
+  function fmtSec(x){ return Number.isFinite(x) ? x.toFixed(2) : "—"; }
   function median(arr){
     if(arr.length===0) return NaN;
     const a=[...arr].sort((x,y)=>x-y);
@@ -402,6 +287,76 @@
     return (a.length%2) ? a[mid] : (a[mid-1]+a[mid])/2;
   }
 
+  // ====== localStorage salvate ======
+  const LS_KEY = "doomsday_saved_v1";
+  function keyOf(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+
+  function loadSaved(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){
+      return [];
+    }
+  }
+  function saveSaved(arr){
+    localStorage.setItem(LS_KEY, JSON.stringify(arr));
+  }
+  function isSavedDate(y,m,d){
+    const k = keyOf(y,m,d);
+    return saved.some(x => keyOf(x.y,x.m,x.d) === k);
+  }
+
+  // ====== State ======
+  let cur=null;
+  let shown=false;
+
+  // stats
+  let tStart=null;
+  let timerInterval=null;
+  const times=[];
+
+  // salvate
+  let saved = loadSaved();
+
+  // ====== DOM ======
+  const minY=document.getElementById("minY");
+  const maxY=document.getElementById("maxY");
+  const mode1900=document.getElementById("mode1900");
+  const rangeBlock=document.getElementById("rangeBlock");
+  const rangeRow=document.getElementById("rangeRow");
+
+  const track=document.getElementById("track");
+  const statsCard=document.getElementById("statsCard");
+  const liveTimer=document.getElementById("liveTimer");
+
+  const dateOut=document.getElementById("dateOut");
+  const answerOut=document.getElementById("answerOut");
+
+  const revealBtn=document.getElementById("revealBtn");
+
+  const saveBtn=document.getElementById("saveBtn");
+  const clearSavedBtn=document.getElementById("clearSavedBtn");
+  const savedCount=document.getElementById("savedCount");
+
+  const resetStatsBtn=document.getElementById("resetStatsBtn");
+  const lastBig=document.getElementById("lastBig");
+  const nOut=document.getElementById("nOut");
+  const medOut=document.getElementById("medOut");
+  const bestOut=document.getElementById("bestOut");
+  const worstOut=document.getElementById("worstOut");
+
+  function getSrcMode(){
+    return document.querySelector('input[name="srcMode"]:checked').value; // range | saved
+  }
+
+  function refreshSavedUI(){
+    savedCount.textContent = saved.length;
+    clearSavedBtn.style.display = (getSrcMode()==="saved" && saved.length>0) ? "inline-block" : "none";
+  }
+
+  // ====== UI behaviors ======
   function stopLiveTimer(){
     if(timerInterval) clearInterval(timerInterval);
     timerInterval=null;
@@ -419,6 +374,7 @@
   function updateStatsUI(){
     if(!track.checked){
       statsCard.style.display="none";
+      stopLiveTimer();
       return;
     }
     statsCard.style.display="block";
@@ -426,7 +382,6 @@
     const n=times.length;
     nOut.textContent=n;
 
-    const avg=mean(times);
     const med=median(times);
     const best=n?Math.min(...times):NaN;
     const worst=n?Math.max(...times):NaN;
@@ -435,13 +390,14 @@
     medOut.textContent=fmtSec(med);
     bestOut.textContent=fmtSec(best);
     worstOut.textContent=fmtSec(worst);
-    document.getElementById("lastBig").textContent = n ? (fmtSec(last) + " s") : "—";
+
+    lastBig.textContent = n ? (fmtSec(last) + " s") : "—";
   }
 
   function setBottom(){
     revealBtn.disabled=!cur;
-    if(!cur) return;
 
+    if(!cur) return;
     if(!shown){
       revealBtn.textContent="Mostra";
       revealBtn.className="bottomReveal";
@@ -451,94 +407,75 @@
     }
   }
 
+  function syncRangeEnabled(){
+    const mode = getSrcMode();
+    const inRange = (mode === "range");
+
+    // disable block visually + functionally
+    rangeBlock.classList.toggle("setupDisabled", !inRange);
+
+    minY.disabled = !inRange;
+    maxY.disabled = !inRange;
+    mode1900.disabled = !inRange;
+
+    clearSavedBtn.style.display = (mode==="saved" && saved.length>0) ? "inline-block" : "none";
+  }
+
   function applyMode1900(){
-    // applica solo se sei in Range
-    if(isSavedMode()) return;
-
     if(mode1900.checked){
-      minY.value=1900; maxY.value=2099;
-      minY.disabled=true; maxY.disabled=true;
-    }else{
-      minY.disabled=false; maxY.disabled=false;
+      minY.value=1900;
+      maxY.value=2099;
     }
   }
 
-  function hideAfterRevealActions(){
-    afterReveal.style.display="none";
-    clearSavedBtn.style.display="none";
-  }
-
-  function showAfterRevealActions(){
-    afterReveal.style.display="flex";
-
-    const already = isSavedDate(cur.y, cur.m, cur.d);
-    saveBtn.textContent = already ? "Rimuovi" : "Salva";
-    saveBtn.className = "btnSmall " + (already ? "btnDanger" : "btnOk");
-
-    if(isSavedMode() && savedCount() > 0){
-      clearSavedBtn.style.display="inline-block";
-    }else{
-      clearSavedBtn.style.display="none";
-    }
-  }
-
-  function pickRandomFromSaved(){
-    if(saved.length === 0) return null;
-    return saved[randInt(0, saved.length - 1)];
-  }
-
-  function newDate(){
-    hideAfterRevealActions();
-
-    // Modalità "Salvate"
-    if(isSavedMode()){
-      if(saved.length === 0){
-        // torna a Range (altrimenti è una modalità vuota)
-        srcRange.checked = true;
-        srcSaved.checked = false;
-        syncRangeEnabled();
-        alert("Non ci sono date salvate. Passo a 'Range'.");
-        // prosegue con random Range
-      }else{
-        const p = pickRandomFromSaved();
-        cur = {y:p.y, m:p.m, d:p.d};
-        shown = false;
-
-        dateOut.textContent = fmtDate(cur.d, cur.m, cur.y);
-        answerOut.textContent = "";
-
-        stopLiveTimer();
-        tStart=null;
-        if(track.checked){
-          tStart=performance.now();
-          startLiveTimer();
-        }
-
-        setBottom();
-        return;
-      }
-    }
-
-    // Random Range
+  function pickFromRange(){
     applyMode1900();
 
     const min=Number(minY.value);
     const max=Number(maxY.value);
     if(!Number.isFinite(min)||!Number.isFinite(max)||min>max){
       alert("Intervallo anni non valido.");
-      return;
+      return null;
     }
 
     const y=randInt(min,max);
     const m=randInt(1,12);
     const d=randInt(1,dim(y,m));
+    return {y,m,d};
+  }
 
-    cur={y,m,d};
+  function pickFromSaved(){
+    if(saved.length===0) return null;
+    const i = randInt(0, saved.length-1);
+    return saved[i];
+  }
+
+  function newDate(){
+    // choose source
+    let next=null;
+    if(getSrcMode()==="saved"){
+      next = pickFromSaved();
+      if(!next){
+        alert("Nessuna data salvata. Passo a Range.");
+        document.querySelector('input[name="srcMode"][value="range"]').checked=true;
+        syncRangeEnabled();
+        next = pickFromRange();
+      }
+    }else{
+      next = pickFromRange();
+    }
+    if(!next) return;
+
+    cur = {y:next.y, m:next.m, d:next.d};
     shown=false;
 
-    dateOut.textContent=fmtDate(d,m,y);
-    answerOut.textContent="";
+    dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
+    answerOut.textContent = "";
 
+    // save button hidden until reveal
+    saveBtn.style.display = "none";
+
+    // timing start if enabled
     stopLiveTimer();
     tStart=null;
     if(track.checked){
@@ -549,9 +486,17 @@
     setBottom();
   }
 
+  function updateSaveButton(){
+    if(!cur) return;
+    const already = isSavedDate(cur.y, cur.m, cur.d);
+    saveBtn.textContent = already ? "Rimuovi" : "Salva";
+    saveBtn.className = "btnSmall " + (already ? "btnDanger" : "btnOk");
+  }
+
   function reveal(){
     if(!cur) return;
 
+    // stop timing and record
     if(track.checked && tStart){
       const elapsed=(performance.now()-tStart)/1000;
       times.push(elapsed);
@@ -560,7 +505,7 @@
       updateStatsUI();
     }
 
-    const w=weekday(cur.y,cur.m,cur.d);
+    const w = weekday(cur.y, cur.m, cur.d);
     const leap = isLeap(cur.y);
 
     answerOut.innerHTML = giorni[w] + (leap ? `<div class="leapNote">bisestile</div>` : "");
@@ -568,13 +513,40 @@
     shown=true;
     setBottom();
 
-    showAfterRevealActions();
+    // show save button only after reveal
+    updateSaveButton();
+    saveBtn.style.display = "inline-block";
   }
 
-  function bottom(){
+  function bottomAction(){
     if(!cur) return;
     if(!shown) reveal();
     else newDate();
+  }
+
+  function toggleSave(){
+    if(!cur) return;
+    const k = keyOf(cur.y, cur.m, cur.d);
+    const already = isSavedDate(cur.y, cur.m, cur.d);
+
+    if(already){
+      saved = saved.filter(x => keyOf(x.y,x.m,x.d) !== k);
+    }else{
+      saved.push({y:cur.y,m:cur.m,d:cur.d});
+    }
+    saveSaved(saved);
+    refreshSavedUI();
+    updateSaveButton();
+    syncRangeEnabled();
+  }
+
+  function clearSaved(){
+    if(saved.length===0) return;
+    if(!confirm("Svuotare tutte le salvate?")) return;
+    saved = [];
+    saveSaved(saved);
+    refreshSavedUI();
+    syncRangeEnabled();
   }
 
   function resetStats(){
@@ -584,29 +556,29 @@
     updateStatsUI();
   }
 
-  // ===== Eventi UI =====
-  function onSrcModeChange(){
-    // Se seleziono Salvate ma sono vuote: torno a Range
-    if(isSavedMode() && saved.length === 0){
-      srcRange.checked = true;
-      srcSaved.checked = false;
+  // ====== Events ======
+  document.querySelectorAll('input[name="srcMode"]').forEach(r=>{
+    r.addEventListener("change", ()=>{
       syncRangeEnabled();
-      alert("Non ci sono date salvate. Salva almeno una data dopo il reveal.");
-      return;
-    }
-    syncRangeEnabled();
+      refreshSavedUI();
+      newDate();
+    });
+  });
 
-    // Se passi a Range, riapplica logica 1900
+  mode1900.addEventListener("change", ()=>{
     applyMode1900();
+    newDate();
+  });
 
-    // aggiorna pulsanti post-reveal (per mostrare/nascondere 'Svuota')
-    if(shown) showAfterRevealActions();
-  }
+  // If user edits min/max manually, generate a new one (optional: you can remove these)
+  minY.addEventListener("change", ()=>{ if(getSrcMode()==="range") newDate(); });
+  maxY.addEventListener("change", ()=>{ if(getSrcMode()==="range") newDate(); });
 
-  srcRange.addEventListener("change", onSrcModeChange);
-  srcSaved.addEventListener("change", onSrcModeChange);
-
-  mode1900.addEventListener("change", ()=>{ applyMode1900(); });
+  document.querySelectorAll('input[name="fmt"]').forEach(r=>{
+    r.addEventListener("change", ()=>{
+      if(cur) dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
+    });
+  });
 
   track.addEventListener("change", ()=>{
     stopLiveTimer();
@@ -614,59 +586,16 @@
     updateStatsUI();
   });
 
-  saveBtn.addEventListener("click", ()=>{
-    if(!cur || !shown) return;
-    const already = isSavedDate(cur.y, cur.m, cur.d);
-    if(already) removeSaved(cur.y, cur.m, cur.d);
-    else addSaved(cur.y, cur.m, cur.d);
-
-    // Se eri in Salvate e hai appena rimosso l'ultima data, torna a Range
-    if(isSavedMode() && saved.length === 0){
-      srcRange.checked = true;
-      srcSaved.checked = false;
-      syncRangeEnabled();
-    }
-
-    showAfterRevealActions();
-  });
-
-  clearSavedBtn.addEventListener("click", ()=>{
-    if(saved.length === 0) return;
-    const ok = confirm("Svuotare tutte le date salvate?");
-    if(!ok) return;
-    clearSaved();
-
-    // se eri in modalità salvate, torna a Range
-    srcRange.checked = true;
-    srcSaved.checked = false;
-    syncRangeEnabled();
-
-    if(shown) showAfterRevealActions();
-    updateSavedLabel();
-  });
-
-  document.querySelectorAll('input[name="fmt"]').forEach(r=>{
-    r.addEventListener("change", ()=>{
-      if(cur) dateOut.textContent=fmtDate(cur.d,cur.m,cur.y);
-    });
-  });
-
-  revealBtn.addEventListener("click", bottom);
+  revealBtn.addEventListener("click", bottomAction);
+  saveBtn.addEventListener("click", toggleSave);
+  clearSavedBtn.addEventListener("click", clearSaved);
   resetStatsBtn.addEventListener("click", resetStats);
 
-  // ===== Init =====
-  loadSaved();
-  updateSavedLabel();
-
+  // ====== Init ======
+  refreshSavedUI();
   syncRangeEnabled();
-  applyMode1900();
   updateStatsUI();
   newDate();
-
-  // Service worker (PWA)
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js");
-  }
 </script>
 
 </body>
