@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 <title>Doomsday Trainer</title>
 
@@ -25,7 +25,7 @@
     font-size:28px;
     font-weight:700;
     text-align:center;
-    margin:8px 0 14px;
+    margin:8px 0 8px;
     line-height:1.15;
   }
   .leapNote{
@@ -36,9 +36,32 @@
     color:#444;
   }
 
+  .afterReveal{
+    margin-top:10px;
+    display:none;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .btnSmall{
+    font-size:16px;
+    padding:10px 12px;
+    border-radius:12px;
+  }
+  .btnDanger{
+    border-color:#c9a0a0;
+    background:#fff5f5;
+    font-weight:700;
+  }
+  .btnOk{
+    border-color:#8fbf8f;
+    background:#f1fff1;
+    font-weight:800;
+  }
+
   /* Bottom bar */
   .bottomBar{
-    position:fixed; left:0; right:0; bottom:24vh;
+    position:fixed; left:0; right:0; bottom:32vh;
     background:#fff;
     padding:10px; display:flex; justify-content:center; z-index:999;
   }
@@ -73,7 +96,7 @@
 
 <div class="card">
 
-  <!-- 1) Range anni (prima cosa) -->
+  <!-- 1) Range anni -->
   <div class="row">
     <label>Min <input id="minY" type="number" value="1800"></label>
     <label>Max <input id="maxY" type="number" value="2199"></label>
@@ -83,6 +106,7 @@
   <div class="row" style="margin-top:12px;">
     <label><input id="mode1900" type="checkbox">1900–2099</label>
     <label><input id="track" type="checkbox">Traccia tempi</label>
+    <label><input id="useSaved" type="checkbox"><span id="savedLabel">Salvate (0)</span></label>
   </div>
 
   <!-- 3) Radio formato data -->
@@ -97,6 +121,12 @@
 <div class="card">
   <div class="date" id="dateOut">—</div>
   <div class="answer" id="answerOut"></div>
+
+  <!-- Azioni visibili SOLO dopo reveal -->
+  <div class="afterReveal" id="afterReveal">
+    <button id="saveBtn" class="btnSmall btnOk">Salva</button>
+    <button id="clearSavedBtn" class="btnSmall btnDanger" style="display:none;">Svuota salvate</button>
+  </div>
 </div>
 
 <div class="card" id="statsCard" style="display:none;">
@@ -127,6 +157,58 @@
   const giorni=["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
   const mesi=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
 
+  // ===== Persistenza "Salvate" =====
+  const SAVED_KEY = "doomsday_saved_v1";
+  let saved = []; // array di {y,m,d}
+
+  function dateKey(y,m,d){ return `${y}-${m}-${d}`; }
+
+  function loadSaved(){
+    try{
+      const raw = localStorage.getItem(SAVED_KEY);
+      saved = raw ? JSON.parse(raw) : [];
+      if(!Array.isArray(saved)) saved = [];
+    }catch(e){
+      saved = [];
+    }
+  }
+
+  function persistSaved(){
+    localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+  }
+
+  function savedCount(){ return saved.length; }
+
+  function isSavedDate(y,m,d){
+    const k = dateKey(y,m,d);
+    return saved.some(x => dateKey(x.y,x.m,x.d) === k);
+  }
+
+  function updateSavedLabel(){
+    savedLabel.textContent = `Salvate (${savedCount()})`;
+  }
+
+  function addSaved(y,m,d){
+    if(isSavedDate(y,m,d)) return;
+    saved.push({y,m,d});
+    persistSaved();
+    updateSavedLabel();
+  }
+
+  function removeSaved(y,m,d){
+    const k = dateKey(y,m,d);
+    saved = saved.filter(x => dateKey(x.y,x.m,x.d) !== k);
+    persistSaved();
+    updateSavedLabel();
+  }
+
+  function clearSaved(){
+    saved = [];
+    persistSaved();
+    updateSavedLabel();
+  }
+
+  // ===== Stato app =====
   let cur=null;
   let shown=false;
 
@@ -138,11 +220,18 @@
   // DOM
   const mode1900=document.getElementById("mode1900");
   const track=document.getElementById("track");
+  const useSaved=document.getElementById("useSaved");
+  const savedLabel=document.getElementById("savedLabel");
+
   const minY=document.getElementById("minY");
   const maxY=document.getElementById("maxY");
   const dateOut=document.getElementById("dateOut");
   const answerOut=document.getElementById("answerOut");
   const revealBtn=document.getElementById("revealBtn");
+
+  const afterReveal=document.getElementById("afterReveal");
+  const saveBtn=document.getElementById("saveBtn");
+  const clearSavedBtn=document.getElementById("clearSavedBtn");
 
   const statsCard=document.getElementById("statsCard");
   const resetStatsBtn=document.getElementById("resetStatsBtn");
@@ -252,7 +341,64 @@
     }
   }
 
+  function hideAfterRevealActions(){
+    afterReveal.style.display="none";
+    clearSavedBtn.style.display="none";
+  }
+
+  function showAfterRevealActions(){
+    afterReveal.style.display="flex";
+
+    // bottone Salva/Rimuovi in base allo stato
+    const already = isSavedDate(cur.y, cur.m, cur.d);
+    saveBtn.textContent = already ? "Rimuovi" : "Salva";
+    saveBtn.className = "btnSmall " + (already ? "btnDanger" : "btnOk");
+
+    // Svuota salvate: lo mostro solo se toggle "Salvate" è attivo e c'è qualcosa
+    if(useSaved.checked && savedCount() > 0){
+      clearSavedBtn.style.display="inline-block";
+    }else{
+      clearSavedBtn.style.display="none";
+    }
+  }
+
+  function pickRandomFromSaved(){
+    if(saved.length === 0) return null;
+    return saved[randInt(0, saved.length - 1)];
+  }
+
   function newDate(){
+    hideAfterRevealActions();
+
+    // Se in modalità "Salvate", pesca solo da lì
+    if(useSaved.checked){
+      if(saved.length === 0){
+        // non faccio finta di nulla: non hai salvate, quindi non ha senso
+        useSaved.checked = false;
+        updateSavedLabel();
+        alert("Non ci sono date salvate. Disattivo 'Salvate'.");
+        // continua con random normale
+      }else{
+        const p = pickRandomFromSaved();
+        cur = {y:p.y, m:p.m, d:p.d};
+        shown = false;
+
+        dateOut.textContent = fmtDate(cur.d, cur.m, cur.y);
+        answerOut.textContent = "";
+
+        stopLiveTimer();
+        tStart=null;
+        if(track.checked){
+          tStart=performance.now();
+          startLiveTimer();
+        }
+
+        setBottom();
+        return;
+      }
+    }
+
+    // Random normale (range + 1900–2099)
     applyMode1900();
 
     const min=Number(minY.value);
@@ -272,7 +418,6 @@
     dateOut.textContent=fmtDate(d,m,y);
     answerOut.textContent="";
 
-    // start timing only if tracking enabled
     stopLiveTimer();
     tStart=null;
     if(track.checked){
@@ -298,11 +443,13 @@
     const w=weekday(cur.y,cur.m,cur.d);
     const leap = isLeap(cur.y);
 
-    // Giorno + (se bisestile) nota in corsivo sotto
     answerOut.innerHTML = giorni[w] + (leap ? `<div class="leapNote">bisestile</div>` : "");
 
     shown=true;
     setBottom();
+
+    // dopo reveal: azioni (Salva/Rimuovi)
+    showAfterRevealActions();
   }
 
   function bottom(){
@@ -318,12 +465,45 @@
     updateStatsUI();
   }
 
-  // Events
+  // ===== Eventi UI =====
   mode1900.addEventListener("change", ()=>{ applyMode1900(); });
+
   track.addEventListener("change", ()=>{
     stopLiveTimer();
     tStart=null;
     updateStatsUI();
+  });
+
+  useSaved.addEventListener("change", ()=>{
+    // se attivi salvate ma non ce ne sono, annullo
+    if(useSaved.checked && saved.length === 0){
+      useSaved.checked = false;
+      alert("Non ci sono date salvate. Salva almeno una data dopo il reveal.");
+    }
+    // se stai usando salvate e sei già in reveal, aggiorno UI (per mostrare 'Svuota')
+    if(shown) showAfterRevealActions();
+  });
+
+  saveBtn.addEventListener("click", ()=>{
+    if(!cur || !shown) return; // per sicurezza: deve essere dopo reveal
+    const already = isSavedDate(cur.y, cur.m, cur.d);
+    if(already) removeSaved(cur.y, cur.m, cur.d);
+    else addSaved(cur.y, cur.m, cur.d);
+
+    // aggiornamento UI
+    showAfterRevealActions();
+  });
+
+  clearSavedBtn.addEventListener("click", ()=>{
+    if(saved.length === 0) return;
+    const ok = confirm("Svuotare tutte le date salvate?");
+    if(!ok) return;
+    clearSaved();
+
+    // se eri in modalità salvate, la disattivo (altrimenti è inutile)
+    useSaved.checked = false;
+    if(shown) showAfterRevealActions();
+    updateSavedLabel();
   });
 
   document.querySelectorAll('input[name="fmt"]').forEach(r=>{
@@ -335,17 +515,19 @@
   revealBtn.addEventListener("click", bottom);
   resetStatsBtn.addEventListener("click", resetStats);
 
-  // Init
+  // ===== Init =====
+  loadSaved();
+  updateSavedLabel();
+
   applyMode1900();
   updateStatsUI();
   newDate();
+
+  // Service worker (PWA)
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+  }
 </script>
-  
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js");
-}
-</script>
-  
+
 </body>
 </html>
