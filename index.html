@@ -87,14 +87,6 @@
   /* Stats */
   .pill{font-size:12px;color:#444;border:1px solid #ddd;padding:4px 8px;border-radius:999px;background:#fafafa;}
   .footerRow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-  .stats{
-    font-size:15px;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px 14px;
-    margin-top:12px;
-  }
-  .statline{display:flex;justify-content:space-between;gap:10px;}
 
   /* --- range grid mobile fix --- */
   .rangeGrid{
@@ -153,6 +145,30 @@
 @media (max-width:420px){
   .statsBox{
     grid-template-columns: 1fr;
+  }
+}
+
+.statsBox{
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:12px 14px;
+  margin-top:10px;
+
+  display:grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap:10px 18px !important;
+}
+
+.statRow{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:16px;
+}
+
+@media (max-width:420px){
+  .statsBox{
+    grid-template-columns: 1fr !important;
   }
 }
 
