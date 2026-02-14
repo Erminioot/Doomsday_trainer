@@ -89,6 +89,25 @@
     margin-top:12px;
   }
   .statline{display:flex;justify-content:space-between;gap:10px;}
+
+  /* --- range grid mobile fix --- */
+  .rangeGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap:14px;
+  align-items:center;
+  }
+
+  @media (max-width:420px){
+  .rangeGrid{
+    grid-template-columns: 1fr 1fr;
+  }
+  .rangeGrid .mode1900Wrap{
+    grid-column:1 / -1;
+    justify-self:start;
+    }
+  }
+  
 </style>
 </head>
 
@@ -105,10 +124,12 @@
   </div>
 
   <!-- B) Range anni (disabilitato se Salvate) -->
-  <div class="row" id="rangeRow">
+  <div class="rangeGrid">
     <label>Min <input id="minY" type="number" value="1800"></label>
     <label>Max <input id="maxY" type="number" value="2199"></label>
-    <label style="margin-left:auto;"><input id="mode1900" type="checkbox">1900–2099</label>
+    <label class="mode1900Wrap">
+      <input id="mode1900" type="checkbox">1900–2099
+    </label>
   </div>
 
   <div class="row" style="margin-top:12px;">
