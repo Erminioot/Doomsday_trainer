@@ -16,6 +16,8 @@
   label{font-size:14px;display:flex;align-items:center;gap:6px;}
   input[type="number"]{font-size:18px;padding:10px;border-radius:10px;border:1px solid #ccc;width:110px;}
   input[type="checkbox"],input[type="radio"]{transform:scale(1.15);}
+  .disabledRow{opacity:.5; pointer-events:none;}
+  .hint{font-size:12px;color:#666;margin-top:6px;}
 
   button{font-size:18px;padding:12px 14px;border-radius:12px;border:1px solid #bbb;background:#fff;cursor:pointer;}
   button:active{transform:translateY(1px);}
@@ -96,26 +98,31 @@
 
 <div class="card">
 
-  <!-- 1) Range anni -->
-  <div class="row">
+  <!-- A) Sorgente date: radio -->
+  <div class="row" style="margin-bottom:10px;">
+    <label><input type="radio" name="srcMode" id="srcRange" value="range" checked>Range</label>
+    <label><input type="radio" name="srcMode" id="srcSaved" value="saved"><span id="savedLabel">Salvate (0)</span></label>
+  </div>
+
+  <!-- B) Range anni (disabilitato se Salvate) -->
+  <div class="row" id="rangeRow">
     <label>Min <input id="minY" type="number" value="1800"></label>
     <label>Max <input id="maxY" type="number" value="2199"></label>
+    <label style="margin-left:auto;"><input id="mode1900" type="checkbox">1900–2099</label>
   </div>
 
-  <!-- 2) Checkbox -->
   <div class="row" style="margin-top:12px;">
-    <label><input id="mode1900" type="checkbox">1900–2099</label>
-    <label><input id="track" type="checkbox">Traccia tempi</label>
-    <label><input id="useSaved" type="checkbox"><span id="savedLabel">Salvate (0)</span></label>
+    <label><input id="track" type="checkbox">Attiva statistiche</label>
   </div>
 
-  <!-- 3) Radio formato data -->
+  <!-- C) Radio formato data -->
   <div class="row" style="margin-top:12px;">
     <strong>Formato data:</strong>
     <label><input type="radio" name="fmt" value="num" checked>dd/mm/yyyy</label>
     <label><input type="radio" name="fmt" value="text">dd month yyyy</label>
   </div>
 
+  <div class="hint" id="rangeHint" style="display:none;">In modalità “Salvate” il range anni non si applica.</div>
 </div>
 
 <div class="card">
@@ -218,9 +225,14 @@
   const times=[];
 
   // DOM
+  const srcRange=document.getElementById("srcRange");
+  const srcSaved=document.getElementById("srcSaved");
+  const rangeRow=document.getElementById("rangeRow");
+  const rangeHint=document.getElementById("rangeHint");
+
   const mode1900=document.getElementById("mode1900");
   const track=document.getElementById("track");
-  const useSaved=document.getElementById("useSaved");
+
   const savedLabel=document.getElementById("savedLabel");
 
   const minY=document.getElementById("minY");
@@ -242,6 +254,19 @@
   const bestOut=document.getElementById("bestOut");
   const worstOut=document.getElementById("worstOut");
   const lastOut=document.getElementById("lastOut");
+
+  function isSavedMode(){ return srcSaved.checked; }
+
+  function syncRangeEnabled(){
+    const savedMode = isSavedMode();
+    if(savedMode){
+      rangeRow.classList.add("disabledRow");
+      rangeHint.style.display="block";
+    }else{
+      rangeRow.classList.remove("disabledRow");
+      rangeHint.style.display="none";
+    }
+  }
 
   function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
   function isLeap(y){return y%4===0 && (y%100!==0 || y%400===0);}
@@ -333,6 +358,9 @@
   }
 
   function applyMode1900(){
+    // applica solo se sei in Range
+    if(isSavedMode()) return;
+
     if(mode1900.checked){
       minY.value=1900; maxY.value=2099;
       minY.disabled=true; maxY.disabled=true;
@@ -349,13 +377,11 @@
   function showAfterRevealActions(){
     afterReveal.style.display="flex";
 
-    // bottone Salva/Rimuovi in base allo stato
     const already = isSavedDate(cur.y, cur.m, cur.d);
     saveBtn.textContent = already ? "Rimuovi" : "Salva";
     saveBtn.className = "btnSmall " + (already ? "btnDanger" : "btnOk");
 
-    // Svuota salvate: lo mostro solo se toggle "Salvate" è attivo e c'è qualcosa
-    if(useSaved.checked && savedCount() > 0){
+    if(isSavedMode() && savedCount() > 0){
       clearSavedBtn.style.display="inline-block";
     }else{
       clearSavedBtn.style.display="none";
@@ -370,14 +396,15 @@
   function newDate(){
     hideAfterRevealActions();
 
-    // Se in modalità "Salvate", pesca solo da lì
-    if(useSaved.checked){
+    // Modalità "Salvate"
+    if(isSavedMode()){
       if(saved.length === 0){
-        // non faccio finta di nulla: non hai salvate, quindi non ha senso
-        useSaved.checked = false;
-        updateSavedLabel();
-        alert("Non ci sono date salvate. Disattivo 'Salvate'.");
-        // continua con random normale
+        // torna a Range (altrimenti è una modalità vuota)
+        srcRange.checked = true;
+        srcSaved.checked = false;
+        syncRangeEnabled();
+        alert("Non ci sono date salvate. Passo a 'Range'.");
+        // prosegue con random Range
       }else{
         const p = pickRandomFromSaved();
         cur = {y:p.y, m:p.m, d:p.d};
@@ -398,7 +425,7 @@
       }
     }
 
-    // Random normale (range + 1900–2099)
+    // Random Range
     applyMode1900();
 
     const min=Number(minY.value);
@@ -431,7 +458,6 @@
   function reveal(){
     if(!cur) return;
 
-    // stop timing and record
     if(track.checked && tStart){
       const elapsed=(performance.now()-tStart)/1000;
       times.push(elapsed);
@@ -448,7 +474,6 @@
     shown=true;
     setBottom();
 
-    // dopo reveal: azioni (Salva/Rimuovi)
     showAfterRevealActions();
   }
 
@@ -466,6 +491,27 @@
   }
 
   // ===== Eventi UI =====
+  function onSrcModeChange(){
+    // Se seleziono Salvate ma sono vuote: torno a Range
+    if(isSavedMode() && saved.length === 0){
+      srcRange.checked = true;
+      srcSaved.checked = false;
+      syncRangeEnabled();
+      alert("Non ci sono date salvate. Salva almeno una data dopo il reveal.");
+      return;
+    }
+    syncRangeEnabled();
+
+    // Se passi a Range, riapplica logica 1900
+    applyMode1900();
+
+    // aggiorna pulsanti post-reveal (per mostrare/nascondere 'Svuota')
+    if(shown) showAfterRevealActions();
+  }
+
+  srcRange.addEventListener("change", onSrcModeChange);
+  srcSaved.addEventListener("change", onSrcModeChange);
+
   mode1900.addEventListener("change", ()=>{ applyMode1900(); });
 
   track.addEventListener("change", ()=>{
@@ -474,23 +520,19 @@
     updateStatsUI();
   });
 
-  useSaved.addEventListener("change", ()=>{
-    // se attivi salvate ma non ce ne sono, annullo
-    if(useSaved.checked && saved.length === 0){
-      useSaved.checked = false;
-      alert("Non ci sono date salvate. Salva almeno una data dopo il reveal.");
-    }
-    // se stai usando salvate e sei già in reveal, aggiorno UI (per mostrare 'Svuota')
-    if(shown) showAfterRevealActions();
-  });
-
   saveBtn.addEventListener("click", ()=>{
-    if(!cur || !shown) return; // per sicurezza: deve essere dopo reveal
+    if(!cur || !shown) return;
     const already = isSavedDate(cur.y, cur.m, cur.d);
     if(already) removeSaved(cur.y, cur.m, cur.d);
     else addSaved(cur.y, cur.m, cur.d);
 
-    // aggiornamento UI
+    // Se eri in Salvate e hai appena rimosso l'ultima data, torna a Range
+    if(isSavedMode() && saved.length === 0){
+      srcRange.checked = true;
+      srcSaved.checked = false;
+      syncRangeEnabled();
+    }
+
     showAfterRevealActions();
   });
 
@@ -500,8 +542,11 @@
     if(!ok) return;
     clearSaved();
 
-    // se eri in modalità salvate, la disattivo (altrimenti è inutile)
-    useSaved.checked = false;
+    // se eri in modalità salvate, torna a Range
+    srcRange.checked = true;
+    srcSaved.checked = false;
+    syncRangeEnabled();
+
     if(shown) showAfterRevealActions();
     updateSavedLabel();
   });
@@ -519,6 +564,7 @@
   loadSaved();
   updateSavedLabel();
 
+  syncRangeEnabled();
   applyMode1900();
   updateStatsUI();
   newDate();
