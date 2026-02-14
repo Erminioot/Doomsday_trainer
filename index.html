@@ -167,6 +167,18 @@
   }
 }
 
+/* hard override: stats must be 2 columns */
+#statsCard .statsBox{
+  display:grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap:10px 18px !important;
+}
+
+#statsCard .statRow{
+  display:flex !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+}
 
 </style>
 </head>
