@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Doomsday Trainer</title>
+
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:18px;max-width:760px;}
+  h1{font-size:22px;margin:0 0 6px;}
+  .muted{color:#555;font-size:14px;margin:0 0 14px;}
+  .card{border:1px solid #ddd;border-radius:14px;padding:14px;margin:12px 0;}
+  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+  label{font-size:14px;display:flex;align-items:center;gap:6px;}
+  input[type="number"]{font-size:18px;padding:10px;border-radius:10px;border:1px solid #ccc;width:110px;}
+  input[type="checkbox"],input[type="radio"]{transform:scale(1.15);}
+
+  button{font-size:18px;padding:12px 14px;border-radius:12px;border:1px solid #bbb;background:#fff;cursor:pointer;}
+  button:active{transform:translateY(1px);}
+
+  .date{font-size:44px;font-weight:800;text-align:center;margin:18px 0 6px;}
+  .answer{
+    font-size:28px;
+    font-weight:700;
+    text-align:center;
+    margin:8px 0 14px;
+    line-height:1.15;
+  }
+  .leapNote{
+    font-size:16px;
+    font-style:italic;
+    font-weight:400;
+    margin-top:6px;
+    color:#444;
+  }
+
+  /* Bottom bar */
+  .bottomBar{
+    position:fixed; left:0; right:0; bottom:24vh;
+    background:#fff;
+    padding:10px; display:flex; justify-content:center; z-index:999;
+  }
+  .bottomBar button{
+    font-size:22px;
+    padding:26px 22px;
+    width:92%;
+    max-width:520px;
+    border-radius:16px;
+  }
+  .bottomReveal{font-weight:800;}
+  .bottomNext{background:#eaf7ea;border-color:#1f7a1f;font-weight:900;}
+  .spacer{height:80px;}
+
+  /* Stats */
+  .pill{font-size:12px;color:#444;border:1px solid #ddd;padding:4px 8px;border-radius:999px;background:#fafafa;}
+  .footerRow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .stats{
+    font-size:15px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px 14px;
+    margin-top:12px;
+  }
+  .statline{display:flex;justify-content:space-between;gap:10px;}
+</style>
+</head>
+
+<body>
+<h1>Doomsday Trainer</h1>
+<p class="muted">by L. Marenco</p>
+
+<div class="card">
+
+  <!-- 1) Range anni (prima cosa) -->
+  <div class="row">
+    <label>Min <input id="minY" type="number" value="1800"></label>
+    <label>Max <input id="maxY" type="number" value="2199"></label>
+  </div>
+
+  <!-- 2) Checkbox -->
+  <div class="row" style="margin-top:12px;">
+    <label><input id="mode1900" type="checkbox">1900–2099</label>
+    <label><input id="track" type="checkbox">Traccia tempi</label>
+  </div>
+
+  <!-- 3) Radio formato data -->
+  <div class="row" style="margin-top:12px;">
+    <strong>Formato data:</strong>
+    <label><input type="radio" name="fmt" value="num" checked>dd/mm/yyyy</label>
+    <label><input type="radio" name="fmt" value="text">dd month yyyy</label>
+  </div>
+
+</div>
+
+<div class="card">
+  <div class="date" id="dateOut">—</div>
+  <div class="answer" id="answerOut"></div>
+</div>
+
+<div class="card" id="statsCard" style="display:none;">
+  <div class="footerRow">
+    <div class="row">
+      <span class="pill">Statistiche tempi (secondi)</span>
+      <span class="muted" id="liveTimer"></span>
+    </div>
+    <button id="resetStatsBtn">Reset stats</button>
+  </div>
+
+  <div class="stats">
+    <div class="statline"><span>Prove</span><strong id="nOut">0</strong></div>
+    <div class="statline"><span>Media</span><strong id="avgOut">—</strong></div>
+    <div class="statline"><span>Mediana</span><strong id="medOut">—</strong></div>
+    <div class="statline"><span>Migliore</span><strong id="bestOut">—</strong></div>
+    <div class="statline"><span>Peggiore</span><strong id="worstOut">—</strong></div>
+    <div class="statline"><span>Ultimo</span><strong id="lastOut">—</strong></div>
+  </div>
+</div>
+
+<div class="bottomBar">
+  <button id="revealBtn" class="bottomReveal" disabled>Mostra</button>
+</div>
+<div class="spacer"></div>
+
+<script>
+  const giorni=["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+  const mesi=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+
+  let cur=null;
+  let shown=false;
+
+  // timing
+  let tStart=null;
+  let timerInterval=null;
+  const times=[];
+
+  // DOM
+  const mode1900=document.getElementById("mode1900");
+  const track=document.getElementById("track");
+  const minY=document.getElementById("minY");
+  const maxY=document.getElementById("maxY");
+  const dateOut=document.getElementById("dateOut");
+  const answerOut=document.getElementById("answerOut");
+  const revealBtn=document.getElementById("revealBtn");
+
+  const statsCard=document.getElementById("statsCard");
+  const resetStatsBtn=document.getElementById("resetStatsBtn");
+  const liveTimer=document.getElementById("liveTimer");
+  const nOut=document.getElementById("nOut");
+  const avgOut=document.getElementById("avgOut");
+  const medOut=document.getElementById("medOut");
+  const bestOut=document.getElementById("bestOut");
+  const worstOut=document.getElementById("worstOut");
+  const lastOut=document.getElementById("lastOut");
+
+  function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+  function isLeap(y){return y%4===0 && (y%100!==0 || y%400===0);}
+  function dim(y,m){return [31,isLeap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1];}
+
+  // Zeller (Gregorian): 0=Sun..6=Sat
+  function weekday(y,m,d){
+    if(m<3){m+=12;y--;}
+    const K=y%100;
+    const J=Math.floor(y/100);
+    const h=(d+Math.floor((13*(m+1))/5)+K+Math.floor(K/4)+Math.floor(J/4)+5*J)%7;
+    return [6,0,1,2,3,4,5][h];
+  }
+
+  function getFormat(){
+    return document.querySelector('input[name="fmt"]:checked').value;
+  }
+
+  function fmtDate(d,m,y){
+    if(getFormat()==="num"){
+      return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y;
+    }
+    return d+" "+mesi[m-1]+" "+y;
+  }
+
+  function fmtSec(x){
+    if(!Number.isFinite(x)) return "—";
+    return x.toFixed(2);
+  }
+  function mean(arr){
+    if(arr.length===0) return NaN;
+    return arr.reduce((s,v)=>s+v,0)/arr.length;
+  }
+  function median(arr){
+    if(arr.length===0) return NaN;
+    const a=[...arr].sort((x,y)=>x-y);
+    const mid=Math.floor(a.length/2);
+    return (a.length%2) ? a[mid] : (a[mid-1]+a[mid])/2;
+  }
+
+  function stopLiveTimer(){
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval=null;
+    liveTimer.textContent="";
+  }
+  function startLiveTimer(){
+    stopLiveTimer();
+    timerInterval=setInterval(()=>{
+      if(!tStart) return;
+      const s=(performance.now()-tStart)/1000;
+      liveTimer.textContent=`In corso: ${fmtSec(s)} s`;
+    },100);
+  }
+
+  function updateStatsUI(){
+    if(!track.checked){
+      statsCard.style.display="none";
+      return;
+    }
+    statsCard.style.display="block";
+
+    const n=times.length;
+    nOut.textContent=n;
+
+    const avg=mean(times);
+    const med=median(times);
+    const best=n?Math.min(...times):NaN;
+    const worst=n?Math.max(...times):NaN;
+    const last=n?times[n-1]:NaN;
+
+    avgOut.textContent=fmtSec(avg);
+    medOut.textContent=fmtSec(med);
+    bestOut.textContent=fmtSec(best);
+    worstOut.textContent=fmtSec(worst);
+    lastOut.textContent=fmtSec(last);
+  }
+
+  function setBottom(){
+    revealBtn.disabled=!cur;
+    if(!cur) return;
+
+    if(!shown){
+      revealBtn.textContent="Mostra";
+      revealBtn.className="bottomReveal";
+    }else{
+      revealBtn.textContent="Nuova data";
+      revealBtn.className="bottomNext";
+    }
+  }
+
+  function applyMode1900(){
+    if(mode1900.checked){
+      minY.value=1900; maxY.value=2099;
+      minY.disabled=true; maxY.disabled=true;
+    }else{
+      minY.disabled=false; maxY.disabled=false;
+    }
+  }
+
+  function newDate(){
+    applyMode1900();
+
+    const min=Number(minY.value);
+    const max=Number(maxY.value);
+    if(!Number.isFinite(min)||!Number.isFinite(max)||min>max){
+      alert("Intervallo anni non valido.");
+      return;
+    }
+
+    const y=randInt(min,max);
+    const m=randInt(1,12);
+    const d=randInt(1,dim(y,m));
+
+    cur={y,m,d};
+    shown=false;
+
+    dateOut.textContent=fmtDate(d,m,y);
+    answerOut.textContent="";
+
+    // start timing only if tracking enabled
+    stopLiveTimer();
+    tStart=null;
+    if(track.checked){
+      tStart=performance.now();
+      startLiveTimer();
+    }
+
+    setBottom();
+  }
+
+  function reveal(){
+    if(!cur) return;
+
+    // stop timing and record
+    if(track.checked && tStart){
+      const elapsed=(performance.now()-tStart)/1000;
+      times.push(elapsed);
+      tStart=null;
+      stopLiveTimer();
+      updateStatsUI();
+    }
+
+    const w=weekday(cur.y,cur.m,cur.d);
+    const leap = isLeap(cur.y);
+
+    // Giorno + (se bisestile) nota in corsivo sotto
+    answerOut.innerHTML = giorni[w] + (leap ? `<div class="leapNote">bisestile</div>` : "");
+
+    shown=true;
+    setBottom();
+  }
+
+  function bottom(){
+    if(!cur) return;
+    if(!shown) reveal();
+    else newDate();
+  }
+
+  function resetStats(){
+    times.length=0;
+    stopLiveTimer();
+    tStart=null;
+    updateStatsUI();
+  }
+
+  // Events
+  mode1900.addEventListener("change", ()=>{ applyMode1900(); });
+  track.addEventListener("change", ()=>{
+    stopLiveTimer();
+    tStart=null;
+    updateStatsUI();
+  });
+
+  document.querySelectorAll('input[name="fmt"]').forEach(r=>{
+    r.addEventListener("change", ()=>{
+      if(cur) dateOut.textContent=fmtDate(cur.d,cur.m,cur.y);
+    });
+  });
+
+  revealBtn.addEventListener("click", bottom);
+  resetStatsBtn.addEventListener("click", resetStats);
+
+  // Init
+  applyMode1900();
+  updateStatsUI();
+  newDate();
+</script>
+
+</body>
+</html>
