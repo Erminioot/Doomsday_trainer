@@ -117,7 +117,46 @@
   margin-top:4px;
 }
 
-    
+.statsTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.statsLast{
+  text-align:center;
+  font-size:26px;
+  font-weight:800;
+  margin:10px 0 6px;
+  text-decoration:underline;
+}
+
+.statsBox{
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:12px 14px;
+  margin-top:10px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px 18px;
+}
+
+.statRow{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:16px;
+}
+
+@media (max-width:420px){
+  .statsBox{
+    grid-template-columns: 1fr;
+  }
+}
+
+
 </style>
 </head>
 
@@ -173,21 +212,18 @@
 </div>
 
 <div class="card" id="statsCard" style="display:none;">
-  <div class="footerRow">
-    <div class="row">
-      <span class="pill">Statistiche tempi (secondi)</span>
-      <span class="muted" id="liveTimer"></span>
-    </div>
-    <button id="resetStatsBtn">Reset stats</button>
+  <div class="statsTop">
+    <span class="pill">Statistiche tempi (secondi)</span>
+    <button id="resetStatsBtn" class="btnSmall">Reset</button>
   </div>
 
-  <div class="stats">
-    <div class="statline"><span>Prove</span><strong id="nOut">0</strong></div>
-    <div class="statline"><span>Media</span><strong id="avgOut">—</strong></div>
-    <div class="statline"><span>Mediana</span><strong id="medOut">—</strong></div>
-    <div class="statline"><span>Migliore</span><strong id="bestOut">—</strong></div>
-    <div class="statline"><span>Peggiore</span><strong id="worstOut">—</strong></div>
-    <div class="statline"><span>Ultimo</span><strong id="lastOut">—</strong></div>
+  <div class="statsLast" id="lastBig">—</div>
+
+  <div class="statsBox">
+    <div class="statRow"><span>Prove</span><strong id="nOut">0</strong></div>
+    <div class="statRow"><span>Mediana</span><strong id="medOut">—</strong></div>
+    <div class="statRow"><span>Migliore</span><strong id="bestOut">—</strong></div>
+    <div class="statRow"><span>Peggiore</span><strong id="worstOut">—</strong></div>
   </div>
 </div>
 
@@ -284,11 +320,9 @@
   const resetStatsBtn=document.getElementById("resetStatsBtn");
   const liveTimer=document.getElementById("liveTimer");
   const nOut=document.getElementById("nOut");
-  const avgOut=document.getElementById("avgOut");
   const medOut=document.getElementById("medOut");
   const bestOut=document.getElementById("bestOut");
   const worstOut=document.getElementById("worstOut");
-  const lastOut=document.getElementById("lastOut");
 
   function isSavedMode(){ return srcSaved.checked; }
 
@@ -372,11 +406,10 @@
     const worst=n?Math.max(...times):NaN;
     const last=n?times[n-1]:NaN;
 
-    avgOut.textContent=fmtSec(avg);
     medOut.textContent=fmtSec(med);
     bestOut.textContent=fmtSec(best);
     worstOut.textContent=fmtSec(worst);
-    lastOut.textContent=fmtSec(last);
+    document.getElementById("lastBig").textContent = n ? (fmtSec(last) + " s") : "—";
   }
 
   function setBottom(){
