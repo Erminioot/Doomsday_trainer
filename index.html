@@ -110,38 +110,32 @@
       font-weight:600;
     }
 
-    /* Stats layout (as agreed) */
-    .statsTop{
+    /* STATS (new layout) */
+    .statsTopRow{
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:12px;
     }
-    .pill{
-      font-size:12px;
-      color:#444;
-      border:1px solid #ddd;
-      padding:4px 8px;
-      border-radius:999px;
-      background:#fafafa;
+    .statsTopLeft{
+      font-size:16px;
+      font-weight:600;
       white-space:nowrap;
     }
-    #liveTimer{font-size:14px;color:#555;}
-
-    .statsLast{
+    .statsTopMid{
+      flex:1;
       text-align:center;
-      font-size:26px;
+      font-size:24px;
       font-weight:800;
-      margin:10px 0 6px;
       text-decoration:underline;
+      white-space:nowrap;
     }
 
     #statsCard .statsBox{
       border:1px solid #ddd;
       border-radius:12px;
       padding:12px 14px;
-      margin-top:10px;
+      margin-top:12px;
       display:grid !important;
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       gap:10px 18px !important;
@@ -227,18 +221,14 @@
 
   <!-- STATS -->
   <div class="card" id="statsCard" style="display:none;">
-    <div class="statsTop">
-      <div class="row">
-        <span class="pill">Statistiche tempi (secondi)</span>
-        <span class="muted" id="liveTimer"></span>
-      </div>
+    <div class="statsTopRow">
+      <div class="statsTopLeft">Prove <span id="nTopOut">0</span></div>
+      <div class="statsTopMid" id="timeTop">—</div>
       <button id="resetStatsBtn" class="btnSmall">Reset</button>
     </div>
 
-    <div class="statsLast" id="lastBig">—</div>
-
     <div class="statsBox">
-      <div class="statRow"><span>Prove</span><strong id="nOut">0</strong></div>
+      <div class="statRow"><span>Media</span><strong id="avgOut">—</strong></div>
       <div class="statRow"><span>Mediana</span><strong id="medOut">—</strong></div>
       <div class="statRow"><span>Migliore</span><strong id="bestOut">—</strong></div>
       <div class="statRow"><span>Peggiore</span><strong id="worstOut">—</strong></div>
@@ -280,6 +270,10 @@
 
   // ====== Stats helpers ======
   function fmtSec(x){ return Number.isFinite(x) ? x.toFixed(2) : "—"; }
+  function mean(arr){
+    if(arr.length===0) return NaN;
+    return arr.reduce((s,v)=>s+v,0)/arr.length;
+  }
   function median(arr){
     if(arr.length===0) return NaN;
     const a=[...arr].sort((x,y)=>x-y);
@@ -325,11 +319,9 @@
   const maxY=document.getElementById("maxY");
   const mode1900=document.getElementById("mode1900");
   const rangeBlock=document.getElementById("rangeBlock");
-  const rangeRow=document.getElementById("rangeRow");
 
   const track=document.getElementById("track");
   const statsCard=document.getElementById("statsCard");
-  const liveTimer=document.getElementById("liveTimer");
 
   const dateOut=document.getElementById("dateOut");
   const answerOut=document.getElementById("answerOut");
@@ -341,8 +333,9 @@
   const savedCount=document.getElementById("savedCount");
 
   const resetStatsBtn=document.getElementById("resetStatsBtn");
-  const lastBig=document.getElementById("lastBig");
-  const nOut=document.getElementById("nOut");
+  const nTopOut=document.getElementById("nTopOut");
+  const timeTop=document.getElementById("timeTop");
+  const avgOut=document.getElementById("avgOut");
   const medOut=document.getElementById("medOut");
   const bestOut=document.getElementById("bestOut");
   const worstOut=document.getElementById("worstOut");
@@ -360,14 +353,13 @@
   function stopLiveTimer(){
     if(timerInterval) clearInterval(timerInterval);
     timerInterval=null;
-    liveTimer.textContent="";
   }
   function startLiveTimer(){
     stopLiveTimer();
     timerInterval=setInterval(()=>{
       if(!tStart) return;
       const s=(performance.now()-tStart)/1000;
-      liveTimer.textContent=`In corso: ${fmtSec(s)} s`;
+      timeTop.textContent = fmtSec(s) + " s"; // NO label, just time
     },100);
   }
 
@@ -380,18 +372,24 @@
     statsCard.style.display="block";
 
     const n=times.length;
-    nOut.textContent=n;
+    nTopOut.textContent = n;
 
+    const avg=mean(times);
     const med=median(times);
     const best=n?Math.min(...times):NaN;
     const worst=n?Math.max(...times):NaN;
     const last=n?times[n-1]:NaN;
 
+    avgOut.textContent=fmtSec(avg);
     medOut.textContent=fmtSec(med);
     bestOut.textContent=fmtSec(best);
     worstOut.textContent=fmtSec(worst);
 
-    lastBig.textContent = n ? (fmtSec(last) + " s") : "—";
+    // If timing is running, the live timer owns timeTop.
+    // Otherwise show last.
+    if(!(track.checked && tStart)){
+      timeTop.textContent = n ? (fmtSec(last) + " s") : "—";
+    }
   }
 
   function setBottom(){
@@ -411,7 +409,6 @@
     const mode = getSrcMode();
     const inRange = (mode === "range");
 
-    // disable block visually + functionally
     rangeBlock.classList.toggle("setupDisabled", !inRange);
 
     minY.disabled = !inRange;
@@ -481,6 +478,8 @@
     if(track.checked){
       tStart=performance.now();
       startLiveTimer();
+      // timeTop now shows live time, no need to force updateStatsUI
+      statsCard.style.display="block";
     }
 
     setBottom();
@@ -502,7 +501,7 @@
       times.push(elapsed);
       tStart=null;
       stopLiveTimer();
-      updateStatsUI();
+      updateStatsUI(); // sets timeTop to last
     }
 
     const w = weekday(cur.y, cur.m, cur.d);
@@ -569,10 +568,6 @@
     applyMode1900();
     newDate();
   });
-
-  // If user edits min/max manually, generate a new one (optional: you can remove these)
-  minY.addEventListener("change", ()=>{ if(getSrcMode()==="range") newDate(); });
-  maxY.addEventListener("change", ()=>{ if(getSrcMode()==="range") newDate(); });
 
   document.querySelectorAll('input[name="fmt"]').forEach(r=>{
     r.addEventListener("change", ()=>{
