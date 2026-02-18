@@ -199,7 +199,7 @@
 
     <div id="rangeBlock">
       <div class="rangeGrid" id="rangeRow">
-        <label>Min <input id="minY" type="number" value="1800"></label>
+        <label>Min <input id="minY" type="number" value="1700"></label>
         <label>Max <input id="maxY" type="number" value="2199"></label>
         <label class="mode1900Wrap"><input id="mode1900" type="checkbox">1900–2099</label>
       </div>
@@ -207,7 +207,7 @@
 
     <div class="row" style="margin-top:12px;">
       <strong>Formato data:</strong>
-      <label><input id="fmtNum" type="checkbox">Usa dd/mm/yyyy</label>
+      <label><input id="fmtNum" type="checkbox">dd/mm/yyyy</label>
     </div>
   </div>
 
@@ -286,6 +286,28 @@
     return (a.length%2) ? a[mid] : (a[mid-1]+a[mid])/2;
   }
 
+  // ====== localStorage stats ======
+  const LS_STATS_KEY = "doomsday_stats_v1";
+  function loadStatsTimes(){
+    try{
+      const raw = localStorage.getItem(LS_STATS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.filter(Number.isFinite) : [];
+    }catch(e){
+      return [];
+    }
+  }
+  function saveStatsTimes(arr){
+    try{
+      const MAX = 5000;
+      const out = arr.length > MAX ? arr.slice(arr.length - MAX) : arr;
+      localStorage.setItem(LS_STATS_KEY, JSON.stringify(out));
+    }catch(e){}
+  }
+  function clearStatsTimes(){
+    try{ localStorage.removeItem(LS_STATS_KEY); }catch(e){}
+  }
+
   // ====== localStorage salvate ======
   const LS_KEY = "doomsday_saved_v1";
   function keyOf(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
@@ -314,7 +336,7 @@
   // stats
   let tStart=null;
   let timerInterval=null;
-  const times=[];
+  const times = loadStatsTimes(); // <-- persisted
 
   // salvate
   let saved = loadSaved();
@@ -499,6 +521,7 @@
     if(track.checked && tStart){
       const elapsed=(performance.now()-tStart)/1000;
       times.push(elapsed);
+      saveStatsTimes(times); // <-- persist
       tStart=null;
       stopLiveTimer();
       updateStatsUI();
@@ -549,6 +572,7 @@
 
   function resetStats(){
     times.length=0;
+    clearStatsTimes(); // <-- clear persisted
     stopLiveTimer();
     tStart=null;
     updateStatsUI();
