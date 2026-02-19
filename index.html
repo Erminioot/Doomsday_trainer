@@ -126,8 +126,8 @@
       font-size:44px;
       font-weight:900;
       text-align:center;
-      margin:14px 0 8px;
-      min-height:52px; /* evita salto layout quando vuota in Verifica */
+      margin:14px 0 10px;
+      min-height:52px;
     }
     .answer{
       font-size:30px;
@@ -149,22 +149,16 @@
       margin-top:10px;
     }
 
-    /* Quiz buttons 2-3-2 */
+    /* Quiz layout: Domenica (2 col), poi coppie */
     #quizBlock{display:none;}
-    .quizRows{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin:10px auto 6px;
+    .quizGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px 12px; /* spazio verticale + orizzontale */
+      margin:12px auto 6px;
       max-width:560px;
     }
-    .quizRow{
-      display:flex;
-      gap:10px;
-      justify-content:center;
-    }
     .quizBtn{
-      flex:1;
       font-size:18px;
       padding:14px 10px;
       border-radius:12px;
@@ -175,6 +169,8 @@
       min-width:0;
     }
     .quizBtn:disabled{opacity:.45;cursor:not-allowed;}
+    .quizBtn.dom{ grid-column:1 / span 2; }
+
     .quizMsg{
       text-align:center;
       font-size:44px;
@@ -210,6 +206,7 @@
       font-size:16px;
       font-weight:900;
       white-space:nowrap;
+      min-width:90px; /* tiene allineamenti */
     }
     .statsTopMid{
       flex:1;
@@ -294,7 +291,6 @@
 
 <body>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button id="tabTraining" class="tabBtn active">Training</button>
     <button id="tabQuiz" class="tabBtn">Quiz</button>
@@ -302,13 +298,11 @@
     <div class="spacer"></div>
   </div>
 
-  <!-- Top right stats toggle -->
   <div class="topLine">
     <div class="spacer"></div>
     <label id="statsToggleLabel"><input id="statsToggle" type="checkbox">Attiva statistiche</label>
   </div>
 
-  <!-- SETUP -->
   <div class="card" id="setupCard">
     <div class="setupTop">
       <div class="setupLeft" id="setupRadios"></div>
@@ -327,11 +321,9 @@
     </div>
   </div>
 
-  <!-- MAIN -->
   <div class="card mainCard" id="mainCard">
     <div class="date" id="dateOut">—</div>
 
-    <!-- Training reveal -->
     <div id="trainingBlock">
       <div class="answer" id="answerOut"></div>
       <div class="saveWrap">
@@ -339,9 +331,8 @@
       </div>
     </div>
 
-    <!-- Quiz -->
     <div id="quizBlock">
-      <div class="quizRows" id="quizRows"></div>
+      <div class="quizGrid" id="quizGrid"></div>
       <div class="quizMsg" id="quizMsg"></div>
 
       <div class="quizNextWrap" id="quizNextWrap">
@@ -349,7 +340,6 @@
       </div>
     </div>
 
-    <!-- Verify -->
     <div id="verifyBlock">
       <div class="verifyRow">
         <input id="verifyIn" type="text" inputmode="numeric" pattern="[0-9/]*" placeholder="gg/mm/aaaa">
@@ -359,7 +349,6 @@
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="card" id="trainingStatsCard">
     <div class="statsTopRow">
       <div class="statsTopLeft">Prove <span id="tNOut">0</span></div>
@@ -376,7 +365,8 @@
 
   <div class="card" id="quizStatsCard">
     <div class="statsTopRow">
-      <div class="statsTopLeft" id="qTopLeft">—</div>
+      <!-- Left header intentionally blank (no OK x/y) -->
+      <div class="statsTopLeft" id="qTopLeft">&nbsp;</div>
       <div class="statsTopMid" id="qTimeTop">—</div>
       <button id="qResetBtn" class="btnSmall">Reset</button>
     </div>
@@ -393,7 +383,6 @@
     </div>
   </div>
 
-  <!-- BOTTOM -->
   <div class="bottomBar" id="bottomBar">
     <button id="bottomBtn" disabled>Mostra</button>
   </div>
@@ -554,7 +543,7 @@ const answerOut=document.getElementById("answerOut");
 const saveBtn=document.getElementById("saveBtn");
 
 const quizBlock=document.getElementById("quizBlock");
-const quizRows=document.getElementById("quizRows");
+const quizGrid=document.getElementById("quizGrid");
 const quizMsg=document.getElementById("quizMsg");
 const quizNextWrap=document.getElementById("quizNextWrap");
 const quizNextBtn=document.getElementById("quizNextBtn");
@@ -809,8 +798,9 @@ function updateQuizStatsUI(){
   }
   quizStatsCard.style.display = "block";
 
+  qTopLeft.innerHTML = "&nbsp;"; // no OK x/y
+
   const errN = Object.keys(qErrMap).length;
-  qTopLeft.textContent = `OK ${qProg.ok}/${qProg.n}`;
   qStreakOut.textContent = qProg.streak;
   qBestStreakOut.textContent = qProg.bestStreak;
   qSessionOut.textContent = `${qProg.ok}/${qProg.n}`;
@@ -843,9 +833,13 @@ function setMode(newMode){
   verifyBlock.style.display = (mode==="verify") ? "block" : "none";
 
   statsToggleLabel.style.display = (mode==="verify") ? "none" : "flex";
+
+  // bottom bar:
+  // - hidden in Verify
+  // - in Quiz it will be shown ONLY when answering (skip)
+  // - in Training normal
   bottomBar.style.display = (mode==="verify") ? "none" : "flex";
 
-  // reset UI states
   clearResultColor();
   quizMsg.textContent = "";
   answerOut.textContent = "";
@@ -853,7 +847,7 @@ function setMode(newMode){
   saveBtn.style.display = "none";
 
   // quiz UI pieces
-  quizRows.style.display = "block";
+  quizGrid.style.display = "grid";
   quizNextWrap.style.display = "none";
   setQuizButtonsEnabled(true);
 
@@ -876,13 +870,10 @@ function setMode(newMode){
   updateQuizStatsUI();
 
   if(mode==="verify"){
-    // Nessuna data visibile in Verifica
     cur = null;
     dateOut.textContent = "";
-    // prepara input
     verifyIn.value = "";
     verifyOut.textContent = "";
-    // focus (tastiera numerica più probabile)
     setTimeout(()=>verifyIn.focus(), 0);
     return;
   }
@@ -894,18 +885,27 @@ function setMode(newMode){
    Bottom button behavior
 =========================== */
 function setBottom(){
+  // default
   bottomBtn.disabled = !cur;
+
   if(!cur) return;
 
   if(mode==="training"){
+    bottomBar.style.display = "flex";
     bottomBtn.textContent = revealed ? "Nuova data" : "Mostra";
     bottomBtn.className = revealed ? "bottomNext" : "";
     return;
   }
 
   if(mode==="quiz"){
-    bottomBtn.textContent = quizLocked ? "Prossima data" : "Skip";
-    bottomBtn.className = quizLocked ? "bottomNext" : "";
+    // IN QUIZ: bottom bar = solo Skip, solo prima di rispondere
+    if(quizLocked){
+      bottomBar.style.display = "none";
+      return;
+    }
+    bottomBar.style.display = "flex";
+    bottomBtn.textContent = "Skip";
+    bottomBtn.className = "";
     return;
   }
 }
@@ -920,6 +920,7 @@ function bottomAction(){
   }
 
   if(mode==="quiz"){
+    // skip => nuova data
     newDate();
     return;
   }
@@ -983,36 +984,30 @@ function clearSaved(){
    Quiz logic
 =========================== */
 function buildQuizButtons(){
-  quizRows.innerHTML = "";
+  quizGrid.innerHTML = "";
 
-  const makeBtn = (idx) => {
+  const makeBtn = (idx, cls="") => {
     const b=document.createElement("button");
-    b.className="quizBtn";
-    b.textContent=giorni[idx];
+    b.className = "quizBtn " + cls;
+    b.textContent = giorni[idx];
     b.addEventListener("click", ()=>quizAnswer(idx));
     return b;
   };
 
-  const r1=document.createElement("div"); r1.className="quizRow";
-  r1.appendChild(makeBtn(0));
-  r1.appendChild(makeBtn(1));
+  // Domenica top, spanning 2 cols
+  quizGrid.appendChild(makeBtn(0, "dom"));
 
-  const r2=document.createElement("div"); r2.className="quizRow";
-  r2.appendChild(makeBtn(2));
-  r2.appendChild(makeBtn(3));
-  r2.appendChild(makeBtn(4));
-
-  const r3=document.createElement("div"); r3.className="quizRow";
-  r3.appendChild(makeBtn(5));
-  r3.appendChild(makeBtn(6));
-
-  quizRows.appendChild(r1);
-  quizRows.appendChild(r2);
-  quizRows.appendChild(r3);
+  // pairs
+  quizGrid.appendChild(makeBtn(1)); // Lun
+  quizGrid.appendChild(makeBtn(2)); // Mar
+  quizGrid.appendChild(makeBtn(3)); // Mer
+  quizGrid.appendChild(makeBtn(4)); // Gio
+  quizGrid.appendChild(makeBtn(5)); // Ven
+  quizGrid.appendChild(makeBtn(6)); // Sab
 }
 
 function setQuizButtonsEnabled(on){
-  [...quizRows.querySelectorAll("button")].forEach(b=>b.disabled=!on);
+  [...quizGrid.querySelectorAll("button")].forEach(b=>b.disabled=!on);
 }
 
 function clearErrors(){
@@ -1027,19 +1022,6 @@ function clearErrors(){
     if(r) r.checked = true;
     buildSetupRadios();
   }
-  newDate();
-}
-
-function resetQuizStats(){
-  if(!confirm("Reset quiz? (progressi, tempi, errori)")) return;
-  qProg = {n:0, ok:0, streak:0, bestStreak:0};
-  qTimes = [];
-  qErrMap = {};
-  saveQuizProg(qProg);
-  saveArr(LS_QUIZ_TIMES, qTimes, 5000);
-  saveErrMap(qErrMap);
-  refreshCounts();
-  updateQuizStatsUI();
   newDate();
 }
 
@@ -1099,8 +1081,8 @@ function quizAnswer(chosenIdx){
   quizLocked = true;
   setQuizButtonsEnabled(false);
 
-  // QUIZ: sostituisci i 7 tasti con "Prossima data" nel box
-  quizRows.style.display = "none";
+  // swap buttons -> next button in box
+  quizGrid.style.display = "none";
   quizNextWrap.style.display = "flex";
 
   clearResultColor();
@@ -1164,25 +1146,20 @@ function newDate(){
   revealed = false;
   quizLocked = false;
 
-  // render date
   dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
 
-  // clear outputs
   answerOut.textContent = "";
   quizMsg.textContent = "";
   verifyOut.textContent = "";
 
-  // training save btn
   saveBtn.style.display = "none";
 
-  // quiz: ripristina tasti
   if(mode==="quiz"){
-    quizRows.style.display = "block";
+    quizGrid.style.display = "grid";
     quizNextWrap.style.display = "none";
     setQuizButtonsEnabled(true);
   }
 
-  // timer rules
   stopLiveTimer();
   tStart = null;
 
@@ -1219,7 +1196,7 @@ function newDate(){
 function parseDateFlexible(s){
   const t = (s||"").trim();
 
-  // 1) dd/mm/yyyy (anche con -, ., spazio)
+  // dd/mm/yyyy (anche con -, ., spazio)
   let m = t.match(/^(\d{1,2})[\/\-\.\s](\d{1,2})[\/\-\.\s](\d{4})$/);
   if(m){
     const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
@@ -1228,7 +1205,7 @@ function parseDateFlexible(s){
     return {d, m:mo, y};
   }
 
-  // 2) ddmmyyyy (8 cifre)
+  // ddmmyyyy (8 cifre)
   const digits = t.replace(/\D/g,"");
   if(digits.length===8){
     const d = Number(digits.slice(0,2));
@@ -1253,19 +1230,23 @@ function doVerify(){
   verifyOut.innerHTML = `${giorni[w]}<div class="leapNote">${leap ? "bisestile" : "non bisestile"}</div>`;
 }
 
-// Auto-format mentre digiti: usa solo numeri e inserisce / dopo 2 e 4 cifre
+// FIX robusto autoformat: ricostruisce sempre da cifre
 function verifyAutoFormat(){
-  const raw = verifyIn.value;
-  // se l'utente incolla già con slash, lascialo stare
-  if(/[\/\-\.\s]/.test(raw)) return;
+  const digits = (verifyIn.value || "").replace(/\D/g,"").slice(0,8);
+  let out = "";
 
-  const digits = raw.replace(/\D/g,"").slice(0,8);
-  let out = digits;
+  if(digits.length <= 2){
+    out = digits;
+  }else if(digits.length <= 4){
+    out = digits.slice(0,2) + "/" + digits.slice(2);
+  }else{
+    out = digits.slice(0,2) + "/" + digits.slice(2,4) + "/" + digits.slice(4);
+  }
 
-  if(digits.length > 2) out = digits.slice(0,2) + "/" + digits.slice(2);
-  if(digits.length > 4) out = digits.slice(0,2) + "/" + digits.slice(2,4) + "/" + digits.slice(4);
-
-  verifyIn.value = out;
+  // evita loop inutili
+  if(verifyIn.value !== out){
+    verifyIn.value = out;
+  }
 }
 
 /* ===========================
@@ -1281,11 +1262,7 @@ function onStatsToggleChanged(){
     stopLiveTimer();
     tStart = null;
 
-    if(tStatsOn){
-      tPendingStart = true; // parte dalla prossima data
-    }else{
-      tPendingStart = false;
-    }
+    tPendingStart = tStatsOn ? true : false; // parte dalla prossima data
     updateTrainingStatsUI();
     setBottom();
     return;
@@ -1300,11 +1277,7 @@ function onStatsToggleChanged(){
     stopLiveTimer();
     tStart = null;
 
-    if(qStatsOn){
-      qPendingStart = true; // parte dalla prossima data
-    }else{
-      qPendingStart = false;
-    }
+    qPendingStart = qStatsOn ? true : false; // parte dalla prossima data
     updateQuizStatsUI();
     setBottom();
     return;
@@ -1327,9 +1300,7 @@ bottomBtn.addEventListener("click", bottomAction);
 
 saveBtn.addEventListener("click", toggleSave);
 
-quizNextBtn.addEventListener("click", ()=>{
-  if(mode==="quiz") newDate();
-});
+quizNextBtn.addEventListener("click", ()=>{ if(mode==="quiz") newDate(); });
 
 tResetBtn.addEventListener("click", ()=>{
   if(!confirm("Reset statistiche training?")) return;
