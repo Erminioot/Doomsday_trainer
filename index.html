@@ -5,55 +5,87 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Doomsday Trainer</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#ffffff">
 
   <style>
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      margin:18px;
+      margin:14px;
       max-width:760px;
       padding-bottom:160px; /* spazio bottom bar */
     }
-    h1{font-size:22px;margin:0 0 6px;}
-    .muted{color:#555;font-size:14px;margin:0 0 14px;}
 
-    .card{border:1px solid #ddd;border-radius:14px;padding:14px;margin:12px 0;}
-    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
-    label{font-size:14px;display:flex;align-items:center;gap:8px;}
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin:0 0 10px;
+    }
+    .tabBtn{
+      font-size:16px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #bbb;
+      background:#fff;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .tabBtn.active{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+    }
 
-    input[type="number"]{
-      font-size:18px;padding:10px;border-radius:10px;border:1px solid #ccc;width:120px;
+    .topLine{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:0 2px 8px;
+    }
+    .topLine .spacer{flex:1;}
+    .topLine label{
+      font-size:14px;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
     }
     input[type="checkbox"],input[type="radio"]{transform:scale(1.15);}
 
-    button{
-      font-size:18px;
-      padding:12px 14px;
-      border-radius:12px;
+    .card{
+      border:1px solid #ddd;
+      border-radius:14px;
+      padding:14px;
+      margin:10px 0;
+      background:#fff;
+    }
+
+    /* Setup box */
+    .setupTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .setupLeft{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+    .btnSmall{
+      font-size:16px;
+      padding:10px 12px;
+      border-radius:10px;
       border:1px solid #bbb;
       background:#fff;
+      font-weight:900;
       cursor:pointer;
     }
-    button:active{transform:translateY(1px);}
-    button:disabled{opacity:.45; cursor:not-allowed;}
-
-    .date{font-size:44px;font-weight:800;text-align:center;margin:18px 0 6px;}
-    .answer{
-      font-size:28px;
-      font-weight:700;
-      text-align:center;
-      margin:8px 0 14px;
-      line-height:1.15;
-    }
-    .leapNote{
-      font-size:16px;
-      font-style:italic;
-      font-weight:400;
-      margin-top:6px;
-      color:#444;
-    }
+    .btnSmall:disabled{opacity:.45;cursor:not-allowed;}
 
     .rangeGrid{
       display:grid;
@@ -62,153 +94,114 @@
       align-items:center;
       margin-top:10px;
     }
-    .mode1900Wrap{
-      grid-column:1 / -1;
-      margin-top:2px;
+    label.inline{
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+    }
+    input[type="number"]{
+      font-size:18px;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      width:120px;
     }
 
+    .rowToggles{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
     .setupDisabled{
       opacity:.55;
       pointer-events:none;
     }
 
+    /* Main (date + answer/quiz) */
+    .mainCard{transition:background-color .12s ease;}
+    .mainOk{background:#d8f9c9;}
+    .mainBad{background:#ffd0d0;}
+
+    .date{
+      font-size:44px;
+      font-weight:900;
+      text-align:center;
+      margin:14px 0 8px;
+    }
+    .answer{
+      font-size:30px;
+      font-weight:900;
+      text-align:center;
+      margin:8px 0 6px;
+      line-height:1.1;
+    }
+    .leapNote{
+      font-size:16px;
+      font-style:italic;
+      font-weight:600;
+      margin-top:6px;
+      color:#333;
+    }
     .saveWrap{
       display:flex;
       justify-content:center;
-      margin-top:6px;
-    }
-    .btnSmall{
-      font-size:16px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid #bbb;
-      background:#fff;
-      font-weight:800;
-    }
-    .btnOk, .btnDanger{
-      background:#fff;
-      border:1px solid #bbb;
-      color:#000;
-      font-weight:800;
+      margin-top:10px;
     }
 
-    .srcTopRow{
+    /* Quiz buttons 2-3-2 */
+    #quizBlock{display:none;}
+    .quizRows{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
+      flex-direction:column;
+      gap:10px;
+      margin:10px auto 6px;
+      max-width:560px;
     }
-    .srcLeft{
+    .quizRow{
       display:flex;
-      align-items:center;
-      gap:18px;
-      flex-wrap:wrap;
-    }
-
-    .bottomBar{
-      position:fixed;
-      left:0; right:0; bottom:160px;
-      background:#fff;
-      padding:10px;
-      display:flex;
+      gap:10px;
       justify-content:center;
-      z-index:999;
-      border-top:1px solid #eee;
-      padding-bottom: calc(10px + env(safe-area-inset-bottom));
     }
-    .bottomBar button{
-      font-size:22px;
-      padding:26px 22px;
-      width:92%;
-      max-width:520px;
-      border-radius:16px;
-    }
-    .bottomReveal{font-weight:900;}
-    .bottomNext{
-      background:#eaf7ea;
-      border-color:#1f7a1f;
-      font-weight:900;
-    }
-
-    /* Tabs */
-    .tabs{
-      display:flex;
-      gap:10px;
-      margin:12px 0;
-    }
-    .tabBtn{
-      font-size:16px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid #bbb;
-      background:#fff;
-      font-weight:900;
-    }
-    .tabBtn.active{
-      background:#111;
-      color:#fff;
-      border-color:#111;
-    }
-
-    /* Quiz */
-    #quizBlock{ display:none; }
-    .seg{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin-top:8px;
-    }
-    .seg label{
-      font-size:14px;
-      font-weight:800;
-    }
-    .quizGrid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap:10px;
-      margin-top:12px;
-    }
-    .quizGrid button{
+    .quizBtn{
+      flex:1;
       font-size:18px;
       padding:14px 10px;
       border-radius:12px;
       border:1px solid #bbb;
       background:#fff;
       font-weight:900;
+      cursor:pointer;
+      min-width:0;
     }
+    .quizBtn:disabled{opacity:.45;cursor:not-allowed;}
     .quizMsg{
       text-align:center;
-      margin-top:12px;
-      font-size:18px;
+      font-size:44px;
       font-weight:900;
-    }
-    .quizSub{
-      text-align:center;
-      margin-top:8px;
-      font-size:15px;
-      color:#444;
-      line-height:1.25;
+      margin:14px 0 8px;
     }
 
-    /* Quiz stats */
-    #quizStatsCard{ display:none; }
+    /* Stats card (shared style) */
+    #trainingStatsCard, #quizStatsCard{display:none;}
     .statsTopRow{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      margin-top:12px;
     }
     .statsTopLeft{
-      font-size:14px;
+      font-size:16px;
       font-weight:900;
       white-space:nowrap;
     }
     .statsTopMid{
       flex:1;
       text-align:center;
-      font-size:22px;
+      font-size:24px;
       font-weight:900;
       text-decoration:underline;
       white-space:nowrap;
@@ -228,842 +221,1097 @@
       gap:10px;
       font-size:16px;
     }
+
+    /* Verify */
+    #verifyBlock{display:none;}
+    .verifyRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:10px;
+    }
+    .verifyRow input{
+      font-size:20px;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid #ccc;
+      width:210px;
+      text-align:center;
+    }
+    .verifyOut{
+      text-align:center;
+      margin-top:14px;
+      font-size:28px;
+      font-weight:900;
+      line-height:1.15;
+    }
+
+    /* Bottom bar */
+    .bottomBar{
+      position:fixed;
+      left:0; right:0; bottom:160px;
+      background:#fff;
+      padding:10px;
+      display:flex;
+      justify-content:center;
+      z-index:999;
+      border-top:1px solid #eee;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+    .bottomBar button{
+      font-size:22px;
+      padding:26px 22px;
+      width:92%;
+      max-width:520px;
+      border-radius:16px;
+      border:1px solid #bbb;
+      background:#fff;
+      cursor:pointer;
+      font-weight:900;
+    }
+    .bottomBar button:disabled{opacity:.45;cursor:not-allowed;}
+    .bottomNext{
+      background:#eaf7ea;
+      border-color:#1f7a1f;
+    }
   </style>
 </head>
 
 <body>
-  <h1>Doomsday Trainer</h1>
-  <p class="muted">by L. Marenco</p>
 
+  <!-- Tabs -->
   <div class="tabs">
     <button id="tabTraining" class="tabBtn active">Training</button>
     <button id="tabQuiz" class="tabBtn">Quiz</button>
+    <button id="tabVerify" class="tabBtn">Verifica</button>
+    <div class="spacer"></div>
   </div>
 
-  <!-- SETUP (shared: date source + format) -->
-  <div class="card">
-    <div class="srcTopRow">
-      <div class="srcLeft">
-        <label><input type="radio" name="srcMode" value="range" checked>Range</label>
-        <label><input type="radio" name="srcMode" value="saved">Salvate (<span id="savedCount">0</span>)</label>
-      </div>
+  <!-- Top right stats toggle -->
+  <div class="topLine">
+    <div class="spacer"></div>
+    <label id="statsToggleLabel"><input id="statsToggle" type="checkbox">Attiva statistiche</label>
+  </div>
 
-      <button id="clearSavedBtn" class="btnSmall" style="display:none;">Svuota salvate</button>
+  <!-- SETUP -->
+  <div class="card" id="setupCard">
+    <div class="setupTop">
+      <div class="setupLeft" id="setupRadios"></div>
+      <button id="setupClearBtn" class="btnSmall" style="display:none;">—</button>
     </div>
 
     <div id="rangeBlock">
       <div class="rangeGrid">
-        <label>Min <input id="minY" type="number" value="1700"></label>
-        <label>Max <input id="maxY" type="number" value="2199"></label>
-        <label class="mode1900Wrap"><input id="mode1900" type="checkbox">1900–2099</label>
+        <label class="inline">Min <input id="minY" type="number" value="1700"></label>
+        <label class="inline">Max <input id="maxY" type="number" value="2199"></label>
       </div>
-    </div>
-
-    <div class="row" style="margin-top:12px;">
-      <strong>Formato data:</strong>
-      <label><input id="fmtNum" type="checkbox">dd/mm/yyyy</label>
+      <div class="rowToggles">
+        <label class="inline"><input id="mode1900" type="checkbox">1900–2099</label>
+        <label class="inline"><input id="fmtNum" type="checkbox">dd/mm/yyyy</label>
+      </div>
     </div>
   </div>
 
-  <!-- MAIN CARD -->
-  <div class="card">
+  <!-- MAIN -->
+  <div class="card mainCard" id="mainCard">
     <div class="date" id="dateOut">—</div>
 
     <!-- Training reveal -->
-    <div class="answer" id="answerOut"></div>
-    <div class="saveWrap">
-      <button id="saveBtn" class="btnSmall btnOk" style="display:none;">Salva</button>
+    <div id="trainingBlock">
+      <div class="answer" id="answerOut"></div>
+      <div class="saveWrap">
+        <button id="saveBtn" class="btnSmall" style="display:none;">Salva</button>
+      </div>
     </div>
 
     <!-- Quiz -->
     <div id="quizBlock">
-      <div class="seg">
-        <label><input type="radio" name="quizMode" id="quizModeRandom" value="random" checked>Random</label>
-        <label><input type="radio" name="quizMode" id="quizModeErrors" value="errors">Errori (<span id="errCountOut">0</span>)</label>
-        <button id="clearErrBtn" class="btnSmall" style="display:none;">Svuota errori</button>
-      </div>
-
-      <div class="row" style="margin-top:6px;">
-        <label>
-          <input id="quizStatsToggle" type="checkbox">
-          Registra tempi + errori
-        </label>
-      </div>
-
-      <div class="quizGrid" id="quizGrid"></div>
+      <div class="quizRows" id="quizRows"></div>
       <div class="quizMsg" id="quizMsg"></div>
-      <div class="quizSub" id="quizSub"></div>
+    </div>
 
-      <div id="quizStatsCard">
-        <div class="statsTopRow">
-          <div class="statsTopLeft" id="quizTopLeft">—</div>
-          <div class="statsTopMid" id="quizTimeTop">—</div>
-          <button id="resetQuizBtn" class="btnSmall">Reset</button>
-        </div>
-
-        <div class="statsBox">
-          <div class="statRow"><span>Media</span><strong id="qAvgOut">—</strong></div>
-          <div class="statRow"><span>Mediana</span><strong id="qMedOut">—</strong></div>
-          <div class="statRow"><span>Migliore</span><strong id="qBestOut">—</strong></div>
-          <div class="statRow"><span>Peggiore</span><strong id="qWorstOut">—</strong></div>
-        </div>
+    <!-- Verify -->
+    <div id="verifyBlock">
+      <div class="verifyRow">
+        <input id="verifyIn" type="text" inputmode="numeric" pattern="[0-9/]*" placeholder="gg/mm/aaaa">
+        <button id="verifyBtn" class="btnSmall">Verifica</button>
       </div>
+      <div class="verifyOut" id="verifyOut"></div>
     </div>
   </div>
 
-  <!-- BOTTOM BUTTON -->
-  <div class="bottomBar">
-    <button id="revealBtn" class="bottomReveal" disabled>Mostra</button>
+  <!-- STATS -->
+  <div class="card" id="trainingStatsCard">
+    <div class="statsTopRow">
+      <div class="statsTopLeft">Prove <span id="tNOut">0</span></div>
+      <div class="statsTopMid" id="tTimeTop">—</div>
+      <button id="tResetBtn" class="btnSmall">Reset</button>
+    </div>
+    <div class="statsBox">
+      <div class="statRow"><span>Media</span><strong id="tAvgOut">—</strong></div>
+      <div class="statRow"><span>Mediana</span><strong id="tMedOut">—</strong></div>
+      <div class="statRow"><span>Migliore</span><strong id="tBestOut">—</strong></div>
+      <div class="statRow"><span>Peggiore</span><strong id="tWorstOut">—</strong></div>
+    </div>
+  </div>
+
+  <div class="card" id="quizStatsCard">
+    <div class="statsTopRow">
+      <div class="statsTopLeft" id="qTopLeft">—</div>
+      <div class="statsTopMid" id="qTimeTop">—</div>
+      <button id="qResetBtn" class="btnSmall">Reset</button>
+    </div>
+    <div class="statsBox">
+      <div class="statRow"><span>Streak</span><strong id="qStreakOut">0</strong></div>
+      <div class="statRow"><span>Best</span><strong id="qBestStreakOut">0</strong></div>
+      <div class="statRow"><span>Session</span><strong id="qSessionOut">0/0</strong></div>
+      <div class="statRow"><span>Errori</span><strong id="qErrCountOut">0</strong></div>
+
+      <div class="statRow"><span>Media</span><strong id="qAvgOut">—</strong></div>
+      <div class="statRow"><span>Mediana</span><strong id="qMedOut">—</strong></div>
+      <div class="statRow"><span>Migliore</span><strong id="qBestOut">—</strong></div>
+      <div class="statRow"><span>Peggiore</span><strong id="qWorstOut">—</strong></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottomBar" id="bottomBar">
+    <button id="bottomBtn" disabled>Mostra</button>
   </div>
 
 <script>
-  // ====== Data helpers ======
-  const giorni=["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
-  const mesi=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
-  const giorniShort = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"]; // 0..6
+/* ===========================
+   Helpers
+=========================== */
+const giorni=["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+const mesi=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
 
-  function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
-  function isLeap(y){return y%4===0 && (y%100!==0 || y%400===0);}
-  function dim(y,m){return [31,isLeap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1];}
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function isLeap(y){return y%4===0 && (y%100!==0 || y%400===0);}
+function dim(y,m){return [31,isLeap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1];}
 
-  // Zeller (Gregorian): 0=Sun..6=Sat
-  function weekday(y,m,d){
-    if(m<3){m+=12;y--;}
-    const K=y%100;
-    const J=Math.floor(y/100);
-    const h=(d+Math.floor((13*(m+1))/5)+K+Math.floor(K/4)+Math.floor(J/4)+5*J)%7;
-    return [6,0,1,2,3,4,5][h];
+// Zeller (Gregorian): 0=Sun..6=Sat
+function weekday(y,m,d){
+  if(m<3){m+=12;y--;}
+  const K=y%100;
+  const J=Math.floor(y/100);
+  const h=(d+Math.floor((13*(m+1))/5)+K+Math.floor(K/4)+Math.floor(J/4)+5*J)%7;
+  return [6,0,1,2,3,4,5][h];
+}
+
+function fmtDate(d,m,y){
+  if(fmtNum.checked){
+    return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y;
   }
+  return d+" "+mesi[m-1]+" "+y;
+}
 
-  function fmtDate(d,m,y){
-    if(fmtNum && fmtNum.checked){
-      return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y;
-    }
-    return d+" "+mesi[m-1]+" "+y;
-  }
+function fmtSec(x){ return Number.isFinite(x) ? x.toFixed(2) : "—"; }
+function mean(arr){ return arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : NaN; }
+function median(arr){
+  if(!arr.length) return NaN;
+  const a=[...arr].sort((x,y)=>x-y);
+  const mid=Math.floor(a.length/2);
+  return (a.length%2) ? a[mid] : (a[mid-1]+a[mid])/2;
+}
 
-  // ====== Stats helpers ======
-  function fmtSec(x){ return Number.isFinite(x) ? x.toFixed(2) : "—"; }
-  function mean(arr){
-    if(arr.length===0) return NaN;
-    return arr.reduce((s,v)=>s+v,0)/arr.length;
-  }
-  function median(arr){
-    if(arr.length===0) return NaN;
-    const a=[...arr].sort((x,y)=>x-y);
-    const mid=Math.floor(a.length/2);
-    return (a.length%2) ? a[mid] : (a[mid-1]+a[mid])/2;
-  }
+/* ===========================
+   Storage keys
+=========================== */
+// salvate (training)
+const LS_SAVED = "doomsday_saved_v1";
 
-  // ====== localStorage salvate ======
-  const LS_SAVED = "doomsday_saved_v1";
-  function keyOf(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+// training stats
+const LS_TRAIN_TIMES = "doomsday_training_times_v2";
+const LS_TRAIN_STATS_ON = "doomsday_training_stats_on_v2";
 
-  function loadSaved(){
-    try{
-      const raw = localStorage.getItem(LS_SAVED);
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    }catch(e){
-      return [];
-    }
-  }
-  function saveSaved(arr){
-    try{ localStorage.setItem(LS_SAVED, JSON.stringify(arr)); }catch(e){}
-  }
-  function isSavedDate(y,m,d){
-    const k = keyOf(y,m,d);
-    return saved.some(x => keyOf(x.y,x.m,x.d) === k);
-  }
+// quiz progress + stats
+const LS_QUIZ_PROG = "doomsday_quiz_progress_v2";      // n, ok, streak, bestStreak
+const LS_QUIZ_TIMES = "doomsday_quiz_times_v2";
+const LS_QUIZ_ERRORS = "doomsday_quiz_errors_v2";      // map errori con okStreak per regola C
+const LS_QUIZ_STATS_ON = "doomsday_quiz_stats_on_v2";
 
-  // ====== localStorage quiz ======
-  const LS_QUIZ_PROGRESS = "doomsday_quiz_progress_v1";
-  const LS_QUIZ_TIMES = "doomsday_quiz_times_v1";
-  const LS_QUIZ_ERRORS = "doomsday_quiz_errors_v1";
-  const LS_QUIZ_STATS_ENABLED = "doomsday_quiz_stats_enabled_v1";
+/* ===========================
+   Load / Save
+=========================== */
+function keyOf(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
 
-  function loadQuizProgress(){
-    try{
-      const raw = localStorage.getItem(LS_QUIZ_PROGRESS);
-      const obj = raw ? JSON.parse(raw) : null;
-      if(!obj || typeof obj !== "object") return {n:0, ok:0, streak:0, bestStreak:0};
-      return {
-        n: Number.isFinite(obj.n) ? obj.n : 0,
-        ok: Number.isFinite(obj.ok) ? obj.ok : 0,
-        streak: Number.isFinite(obj.streak) ? obj.streak : 0,
-        bestStreak: Number.isFinite(obj.bestStreak) ? obj.bestStreak : 0,
+function loadArr(key){
+  try{
+    const raw=localStorage.getItem(key);
+    const arr=raw?JSON.parse(raw):[];
+    return Array.isArray(arr)?arr:[];
+  }catch(e){ return []; }
+}
+function saveArr(key, arr, cap){
+  try{
+    const out = (cap && arr.length>cap) ? arr.slice(arr.length-cap) : arr;
+    localStorage.setItem(key, JSON.stringify(out));
+  }catch(e){}
+}
+function loadBool(key, def=false){
+  try{
+    const raw=localStorage.getItem(key);
+    if(raw===null) return def;
+    return raw==="1";
+  }catch(e){ return def; }
+}
+function saveBool(key, v){
+  try{ localStorage.setItem(key, v?"1":"0"); }catch(e){}
+}
+
+function loadSaved(){
+  try{
+    const raw=localStorage.getItem(LS_SAVED);
+    const arr=raw?JSON.parse(raw):[];
+    return Array.isArray(arr)?arr:[];
+  }catch(e){ return []; }
+}
+function saveSaved(arr){
+  try{ localStorage.setItem(LS_SAVED, JSON.stringify(arr)); }catch(e){}
+}
+
+function loadQuizProg(){
+  try{
+    const raw=localStorage.getItem(LS_QUIZ_PROG);
+    const o=raw?JSON.parse(raw):null;
+    if(!o || typeof o!=="object") return {n:0, ok:0, streak:0, bestStreak:0};
+    return {
+      n: Number.isFinite(o.n)?o.n:0,
+      ok: Number.isFinite(o.ok)?o.ok:0,
+      streak: Number.isFinite(o.streak)?o.streak:0,
+      bestStreak: Number.isFinite(o.bestStreak)?o.bestStreak:0
+    };
+  }catch(e){ return {n:0, ok:0, streak:0, bestStreak:0}; }
+}
+function saveQuizProg(o){
+  try{ localStorage.setItem(LS_QUIZ_PROG, JSON.stringify(o)); }catch(e){}
+}
+
+// error map: { "YYYY-MM-DD": {y,m,d, wrongCount, okStreak} }
+function loadErrMap(){
+  try{
+    const raw=localStorage.getItem(LS_QUIZ_ERRORS);
+    const parsed=raw?JSON.parse(raw):null;
+    if(!parsed || typeof parsed!=="object" || Array.isArray(parsed)) return {};
+    const map={};
+    for(const [k,v] of Object.entries(parsed)){
+      if(!v || typeof v!=="object") continue;
+      const y=Number(v.y), m=Number(v.m), d=Number(v.d);
+      if(!Number.isFinite(y)||!Number.isFinite(m)||!Number.isFinite(d)) continue;
+      map[k]={
+        y,m,d,
+        wrongCount: Number.isFinite(v.wrongCount)?v.wrongCount:1,
+        okStreak: Number.isFinite(v.okStreak)?v.okStreak:0
       };
-    }catch(e){
-      return {n:0, ok:0, streak:0, bestStreak:0};
     }
-  }
-  function saveQuizProgress(q){
-    try{ localStorage.setItem(LS_QUIZ_PROGRESS, JSON.stringify(q)); }catch(e){}
-  }
+    return map;
+  }catch(e){ return {}; }
+}
+function saveErrMap(map){
+  try{ localStorage.setItem(LS_QUIZ_ERRORS, JSON.stringify(map)); }catch(e){}
+}
 
-  function loadQuizTimes(){
-    try{
-      const raw = localStorage.getItem(LS_QUIZ_TIMES);
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr.filter(Number.isFinite) : [];
-    }catch(e){
-      return [];
-    }
-  }
-  function saveQuizTimes(arr){
-    try{
-      const MAX = 5000;
-      const out = arr.length > MAX ? arr.slice(arr.length - MAX) : arr;
-      localStorage.setItem(LS_QUIZ_TIMES, JSON.stringify(out));
-    }catch(e){}
-  }
-  function clearQuizTimes(){
-    try{ localStorage.removeItem(LS_QUIZ_TIMES); }catch(e){}
-  }
+/* ===========================
+   DOM
+=========================== */
+const tabTraining=document.getElementById("tabTraining");
+const tabQuiz=document.getElementById("tabQuiz");
+const tabVerify=document.getElementById("tabVerify");
 
-  // Errori: preferito come mappa { "YYYY-MM-DD": {y,m,d, wrongCount, okStreak} }
-  // okStreak = quante corrette consecutive su quella data (rimuovi a 2)
-  function normalizeErrorsToMap(rawVal){
-    // rawVal può essere: null | array vecchia | object map
-    if(!rawVal) return {};
-    if(Array.isArray(rawVal)){
-      const map = {};
-      rawVal.forEach(e=>{
-        if(!e || !Number.isFinite(e.y) || !Number.isFinite(e.m) || !Number.isFinite(e.d)) return;
-        const k = keyOf(e.y,e.m,e.d);
-        map[k] = {
-          y:e.y,m:e.m,d:e.d,
-          wrongCount: 1,
-          okStreak: 0
-        };
-      });
-      return map;
-    }
-    if(typeof rawVal === "object"){
-      const map = {};
-      for(const [k,v] of Object.entries(rawVal)){
-        if(!v || typeof v !== "object") continue;
-        const y = Number(v.y), m = Number(v.m), d = Number(v.d);
-        if(!Number.isFinite(y)||!Number.isFinite(m)||!Number.isFinite(d)) continue;
-        map[k] = {
-          y, m, d,
-          wrongCount: Number.isFinite(v.wrongCount) ? v.wrongCount : 1,
-          okStreak: Number.isFinite(v.okStreak) ? v.okStreak : 0
-        };
-      }
-      return map;
-    }
-    return {};
-  }
+const statsToggle=document.getElementById("statsToggle");
+const statsToggleLabel=document.getElementById("statsToggleLabel");
 
-  function loadQuizErrorsMap(){
-    try{
-      const raw = localStorage.getItem(LS_QUIZ_ERRORS);
-      const parsed = raw ? JSON.parse(raw) : null;
-      return normalizeErrorsToMap(parsed);
-    }catch(e){
-      return {};
-    }
-  }
-  function saveQuizErrorsMap(map){
-    try{
-      // cap: ~2000 chiavi (taglia arbitraria: se supera, tagliamo i meno utili)
-      const keys = Object.keys(map);
-      if(keys.length > 2000){
-        // ordina per wrongCount desc, poi okStreak asc (tieni quelli più "problematici")
-        const entries = keys.map(k=>({k, v:map[k]}));
-        entries.sort((a,b)=>{
-          const wc = (b.v.wrongCount||0) - (a.v.wrongCount||0);
-          if(wc !== 0) return wc;
-          return (a.v.okStreak||0) - (b.v.okStreak||0);
-        });
-        const keep = entries.slice(0, 2000);
-        const out = {};
-        keep.forEach(e=> out[e.k] = e.v);
-        localStorage.setItem(LS_QUIZ_ERRORS, JSON.stringify(out));
-      }else{
-        localStorage.setItem(LS_QUIZ_ERRORS, JSON.stringify(map));
-      }
-    }catch(e){}
-  }
-  function clearQuizErrors(){
-    try{ localStorage.removeItem(LS_QUIZ_ERRORS); }catch(e){}
-  }
+const setupRadios=document.getElementById("setupRadios");
+const setupClearBtn=document.getElementById("setupClearBtn");
 
-  function loadQuizStatsEnabled(){
-    try{
-      const raw = localStorage.getItem(LS_QUIZ_STATS_ENABLED);
-      if(raw === null) return false;
-      return raw === "1";
-    }catch(e){
-      return false;
-    }
-  }
-  function saveQuizStatsEnabled(v){
-    try{ localStorage.setItem(LS_QUIZ_STATS_ENABLED, v ? "1" : "0"); }catch(e){}
-  }
+const minY=document.getElementById("minY");
+const maxY=document.getElementById("maxY");
+const mode1900=document.getElementById("mode1900");
+const fmtNum=document.getElementById("fmtNum");
+const rangeBlock=document.getElementById("rangeBlock");
 
-  // ====== State ======
-  let cur=null;
-  let shown=false; // training reveal
-  let saved = loadSaved();
+const mainCard=document.getElementById("mainCard");
+const dateOut=document.getElementById("dateOut");
 
-  let mode = "training"; // "training" | "quiz"
-  let quizLocked = false;
+const trainingBlock=document.getElementById("trainingBlock");
+const answerOut=document.getElementById("answerOut");
+const saveBtn=document.getElementById("saveBtn");
 
-  // quiz data
-  let qProg = loadQuizProgress();
-  let qTimes = loadQuizTimes();
-  let qErrMap = loadQuizErrorsMap();
-  let lastErrKey = null;
+const quizBlock=document.getElementById("quizBlock");
+const quizRows=document.getElementById("quizRows");
+const quizMsg=document.getElementById("quizMsg");
 
-  // timer (solo se stats quiz ON)
-  let tStart=null;
-  let timerInterval=null;
+const verifyBlock=document.getElementById("verifyBlock");
+const verifyIn=document.getElementById("verifyIn");
+const verifyBtn=document.getElementById("verifyBtn");
+const verifyOut=document.getElementById("verifyOut");
 
-  // ====== DOM ======
-  const minY=document.getElementById("minY");
-  const maxY=document.getElementById("maxY");
-  const mode1900=document.getElementById("mode1900");
-  const rangeBlock=document.getElementById("rangeBlock");
-  const fmtNum=document.getElementById("fmtNum");
+const trainingStatsCard=document.getElementById("trainingStatsCard");
+const tNOut=document.getElementById("tNOut");
+const tTimeTop=document.getElementById("tTimeTop");
+const tAvgOut=document.getElementById("tAvgOut");
+const tMedOut=document.getElementById("tMedOut");
+const tBestOut=document.getElementById("tBestOut");
+const tWorstOut=document.getElementById("tWorstOut");
+const tResetBtn=document.getElementById("tResetBtn");
 
-  const dateOut=document.getElementById("dateOut");
-  const answerOut=document.getElementById("answerOut");
+const quizStatsCard=document.getElementById("quizStatsCard");
+const qTopLeft=document.getElementById("qTopLeft");
+const qTimeTop=document.getElementById("qTimeTop");
+const qStreakOut=document.getElementById("qStreakOut");
+const qBestStreakOut=document.getElementById("qBestStreakOut");
+const qSessionOut=document.getElementById("qSessionOut");
+const qErrCountOut=document.getElementById("qErrCountOut");
+const qAvgOut=document.getElementById("qAvgOut");
+const qMedOut=document.getElementById("qMedOut");
+const qBestOut=document.getElementById("qBestOut");
+const qWorstOut=document.getElementById("qWorstOut");
+const qResetBtn=document.getElementById("qResetBtn");
 
-  const revealBtn=document.getElementById("revealBtn");
-  const saveBtn=document.getElementById("saveBtn");
-  const clearSavedBtn=document.getElementById("clearSavedBtn");
-  const savedCount=document.getElementById("savedCount");
+const bottomBar=document.getElementById("bottomBar");
+const bottomBtn=document.getElementById("bottomBtn");
 
-  const tabTraining=document.getElementById("tabTraining");
-  const tabQuiz=document.getElementById("tabQuiz");
+/* ===========================
+   State
+=========================== */
+let mode = "training";           // training | quiz | verify
+let cur = null;
+let revealed = false;            // training only
+let quizLocked = false;          // quiz answered
 
-  const quizBlock=document.getElementById("quizBlock");
-  const quizModeRandom=document.getElementById("quizModeRandom");
-  const quizModeErrors=document.getElementById("quizModeErrors");
-  const errCountOut=document.getElementById("errCountOut");
-  const clearErrBtn=document.getElementById("clearErrBtn");
+let saved = loadSaved();
 
-  const quizStatsToggle=document.getElementById("quizStatsToggle");
-  const quizGrid=document.getElementById("quizGrid");
-  const quizMsg=document.getElementById("quizMsg");
-  const quizSub=document.getElementById("quizSub");
+// Training stats
+let tTimes = loadArr(LS_TRAIN_TIMES).filter(Number.isFinite);
+let tStatsOn = loadBool(LS_TRAIN_STATS_ON, false);
+let tPendingStart = false;
 
-  const quizStatsCard=document.getElementById("quizStatsCard");
-  const quizTopLeft=document.getElementById("quizTopLeft");
-  const quizTimeTop=document.getElementById("quizTimeTop");
-  const resetQuizBtn=document.getElementById("resetQuizBtn");
+// Quiz stats
+let qProg = loadQuizProg();
+let qTimes = loadArr(LS_QUIZ_TIMES).filter(Number.isFinite);
+let qErrMap = loadErrMap();
+let qStatsOn = loadBool(LS_QUIZ_STATS_ON, false);
+let qPendingStart = false;
+let lastErrKey = null;
 
-  const qAvgOut=document.getElementById("qAvgOut");
-  const qMedOut=document.getElementById("qMedOut");
-  const qBestOut=document.getElementById("qBestOut");
-  const qWorstOut=document.getElementById("qWorstOut");
+// Timers (live)
+let tStart = null;
+let timerInterval = null;
 
-  function getSrcMode(){
-    return document.querySelector('input[name="srcMode"]:checked').value; // range | saved
-  }
-  function getQuizMode(){
-    return document.querySelector('input[name="quizMode"]:checked').value; // random | errors
-  }
+/* ===========================
+   Timer helpers
+=========================== */
+function stopLiveTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+}
+function startLiveTimer(targetEl){
+  stopLiveTimer();
+  timerInterval = setInterval(()=>{
+    if(!tStart) return;
+    const s = (performance.now()-tStart)/1000;
+    targetEl.textContent = fmtSec(s) + " s";
+  }, 100);
+}
 
-  function refreshSavedUI(){
-    savedCount.textContent = saved.length;
-    clearSavedBtn.style.display = (getSrcMode()==="saved" && saved.length>0) ? "inline-block" : "none";
-  }
+/* ===========================
+   Setup UI builders
+=========================== */
+function buildSetupRadios(){
+  setupRadios.innerHTML = "";
+  setupClearBtn.style.display = "none";
+  setupClearBtn.textContent = "—";
 
-  function refreshErrorsUI(){
-    const n = Object.keys(qErrMap).length;
-    errCountOut.textContent = n;
-    clearErrBtn.style.display = n>0 ? "inline-block" : "none";
-  }
+  const mkRadio = (name, value, text, countSpanId=null) => {
+    const lab = document.createElement("label");
+    lab.className = "inline";
+    const inp = document.createElement("input");
+    inp.type="radio";
+    inp.name=name;
+    inp.value=value;
+    lab.appendChild(inp);
 
-  // ====== Timer ======
-  function stopLiveTimer(){
-    if(timerInterval) clearInterval(timerInterval);
-    timerInterval=null;
-  }
-  function startLiveTimer(){
-    stopLiveTimer();
-    timerInterval=setInterval(()=>{
-      if(!tStart) return;
-      const s=(performance.now()-tStart)/1000;
-      quizTimeTop.textContent = fmtSec(s) + " s";
-    },100);
-  }
+    const t = document.createElement("span");
+    t.textContent = text;
+    lab.appendChild(t);
 
-  // ====== UI ======
-  function setBottom(){
-    revealBtn.disabled=!cur;
-    if(!cur) return;
-
-    if(mode==="quiz"){
-      if(!quizLocked){
-        revealBtn.textContent="Skip";
-        revealBtn.className="bottomReveal";
-      }else{
-        revealBtn.textContent="Nuova data";
-        revealBtn.className="bottomNext";
-      }
-      return;
+    if(countSpanId){
+      const sp = document.createElement("span");
+      sp.id = countSpanId;
+      sp.textContent = "0";
+      lab.appendChild(document.createTextNode(" ("));
+      lab.appendChild(sp);
+      lab.appendChild(document.createTextNode(")"));
     }
 
-    // training
-    if(!shown){
-      revealBtn.textContent="Mostra";
-      revealBtn.className="bottomReveal";
-    }else{
-      revealBtn.textContent="Nuova data";
-      revealBtn.className="bottomNext";
-    }
+    return {lab, inp};
+  };
+
+  if(mode === "training"){
+    const r1 = mkRadio("srcMode","range","Range");
+    const r2 = mkRadio("srcMode","saved","Salvate", "savedCount");
+    r1.inp.checked = true;
+
+    setupRadios.appendChild(r1.lab);
+    setupRadios.appendChild(r2.lab);
+
+    setupClearBtn.textContent = "Svuota salvate";
+    setupClearBtn.onclick = clearSaved;
+    setupClearBtn.style.display = (saved.length>0) ? "inline-block" : "none";
   }
 
-  function syncRangeEnabled(){
-    const src = getSrcMode();
-    const inRange = (src === "range");
+  if(mode === "quiz"){
+    const r1 = mkRadio("quizSrc","range","Range");
+    const r2 = mkRadio("quizSrc","errors","Errori", "errCount");
+    r1.inp.checked = true;
 
-    rangeBlock.classList.toggle("setupDisabled", !inRange);
-    minY.disabled = !inRange;
-    maxY.disabled = !inRange;
-    mode1900.disabled = !inRange;
+    setupRadios.appendChild(r1.lab);
+    setupRadios.appendChild(r2.lab);
 
-    clearSavedBtn.style.display = (src==="saved" && saved.length>0) ? "inline-block" : "none";
+    setupClearBtn.textContent = "Svuota errori";
+    setupClearBtn.onclick = clearErrors;
+    setupClearBtn.style.display = (Object.keys(qErrMap).length>0) ? "inline-block" : "none";
   }
 
-  function applyMode1900(){
-    if(mode1900.checked){
-      minY.value=1900;
-      maxY.value=2099;
-    }
+  if(mode === "verify"){
+    // niente radio in verifica
+    setupRadios.innerHTML = "";
+    setupClearBtn.style.display = "none";
   }
 
-  function pickFromRange(){
-    applyMode1900();
-    const min=Number(minY.value);
-    const max=Number(maxY.value);
-    if(!Number.isFinite(min)||!Number.isFinite(max)||min>max){
-      alert("Intervallo anni non valido.");
-      return null;
-    }
-    const y=randInt(min,max);
-    const m=randInt(1,12);
-    const d=randInt(1,dim(y,m));
-    return {y,m,d};
-  }
-
-  function pickFromSaved(){
-    if(saved.length===0) return null;
-    const i = randInt(0, saved.length-1);
-    return saved[i];
-  }
-
-  function pickRandomDateBySource(){
-    if(getSrcMode()==="saved"){
-      const p = pickFromSaved();
-      if(!p){
-        alert("Nessuna data salvata. Passo a Range.");
-        document.querySelector('input[name="srcMode"][value="range"]').checked=true;
-        syncRangeEnabled();
-        return pickFromRange();
-      }
-      return p;
-    }
-    return pickFromRange();
-  }
-
-  function pickFromErrors(){
-    const keys = Object.keys(qErrMap);
-    if(keys.length===0) return null;
-
-    let k = keys[randInt(0, keys.length-1)];
-    if(keys.length > 1 && k === lastErrKey){
-      // evita ripetizione immediata
-      k = keys[randInt(0, keys.length-1)];
-      if(k === lastErrKey){
-        // fallback semplice: trova il primo diverso
-        k = keys.find(x=>x!==lastErrKey) || k;
-      }
-    }
-    lastErrKey = k;
-    const e = qErrMap[k];
-    return {y:e.y,m:e.m,d:e.d, _errKey:k};
-  }
-
-  function updateSaveButton(){
-    if(!cur) return;
-    const already = isSavedDate(cur.y, cur.m, cur.d);
-    saveBtn.textContent = already ? "Rimuovi" : "Salva";
-    saveBtn.className = "btnSmall " + (already ? "btnDanger" : "btnOk");
-  }
-
-  function quizSetButtonsEnabled(on){
-    [...quizGrid.querySelectorAll("button")].forEach(b=> b.disabled = !on);
-  }
-
-  function quizHeaderText(){
-    const n = qProg.n;
-    const acc = n ? (100*qProg.ok/n) : 0;
-    const errN = Object.keys(qErrMap).length;
-    return `OK ${qProg.ok}/${n} (${acc.toFixed(0)}%) · Streak ${qProg.streak} · Best ${qProg.bestStreak} · Errori ${errN}`;
-  }
-
-  function updateQuizStatsUI(){
-    const enabled = quizStatsToggle.checked;
-    quizStatsCard.style.display = enabled ? "block" : "none";
-
-    quizTopLeft.textContent = quizHeaderText();
-
-    const n=qTimes.length;
-    const avg=mean(qTimes);
-    const med=median(qTimes);
-    const best=n?Math.min(...qTimes):NaN;
-    const worst=n?Math.max(...qTimes):NaN;
-    const last=n?qTimes[n-1]:NaN;
-
-    qAvgOut.textContent=fmtSec(avg);
-    qMedOut.textContent=fmtSec(med);
-    qBestOut.textContent=fmtSec(best);
-    qWorstOut.textContent=fmtSec(worst);
-
-    if(!(enabled && tStart)){
-      quizTimeTop.textContent = n ? (fmtSec(last) + " s") : "—";
-    }
-  }
-
-  function quizRenderButtons(){
-    quizGrid.innerHTML = "";
-    // ordine richiesto: Dom(0) → Sab(6)
-    for(let idx=0; idx<=6; idx++){
-      const b = document.createElement("button");
-      b.textContent = giorniShort[idx];
-      b.addEventListener("click", ()=> quizAnswer(idx));
-      quizGrid.appendChild(b);
-    }
-  }
-
-  function setMode(newMode){
-    mode = newMode;
-
-    tabTraining.classList.toggle("active", mode==="training");
-    tabQuiz.classList.toggle("active", mode==="quiz");
-
-    quizBlock.style.display = (mode==="quiz") ? "block" : "none";
-
-    // reset outputs
-    answerOut.textContent = "";
-    quizMsg.textContent = "";
-    quizSub.textContent = "";
-    shown = false;
-    quizLocked = false;
-
-    // timer off
-    stopLiveTimer();
-    tStart=null;
-
-    // training: salva visibile solo dopo reveal
-    saveBtn.style.display = "none";
-
-    refreshErrorsUI();
-    updateQuizStatsUI();
-    setBottom();
-    newDate();
-  }
-
-  function newDate(){
-    let next=null;
-
-    if(mode==="quiz" && getQuizMode()==="errors"){
-      next = pickFromErrors();
-      if(!next){
-        quizMsg.textContent = "";
-        quizSub.textContent = "Nessun errore salvato. Torno a Random.";
-        quizModeRandom.checked = true;
-        next = pickRandomDateBySource();
-      }
-    }else{
-      next = pickRandomDateBySource();
-    }
-
-    if(!next) return;
-
-    cur = {y:next.y, m:next.m, d:next.d};
-    cur._errKey = next._errKey || null;
-
-    // reset state
-    shown=false;
-    quizLocked=false;
-
-    // render date
-    dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
-
-    // clear outputs
-    answerOut.textContent = "";
-    quizMsg.textContent = "";
-    if(!(mode==="quiz" && getQuizMode()==="errors" && !Object.keys(qErrMap).length)){
-      // lascia eventuale messaggio "torno a Random" solo durante il fallback (già scritto sopra)
-      quizSub.textContent = "";
-    }
-
-    // training save btn hidden until reveal
-    saveBtn.style.display = "none";
-
-    // quiz: enable buttons
-    if(mode==="quiz"){
-      quizSetButtonsEnabled(true);
-
-      stopLiveTimer();
-      tStart=null;
-      if(quizStatsToggle.checked){
-        tStart=performance.now();
-        startLiveTimer();
-      }else{
-        quizTimeTop.textContent = "—";
-      }
-      updateQuizStatsUI();
-    }else{
-      // training: no timer
-      stopLiveTimer();
-      tStart=null;
-    }
-
-    setBottom();
-  }
-
-  function revealTraining(){
-    if(!cur) return;
-
-    const w = weekday(cur.y, cur.m, cur.d);
-    const leap = isLeap(cur.y);
-
-    answerOut.innerHTML = giorni[w] + (leap ? `<div class="leapNote">bisestile</div>` : "");
-
-    shown=true;
-    setBottom();
-
-    updateSaveButton();
-    saveBtn.style.display = "inline-block";
-  }
-
-  function updateErrorMapOnAnswer(ok, chosenIdx, correctIdx, elapsedSec){
-    // Stats OFF => niente aggiornamento errori
-    if(!quizStatsToggle.checked) return;
-
-    const k = keyOf(cur.y,cur.m,cur.d);
-    const existing = qErrMap[k] || null;
-
-    if(ok){
-      if(existing){
-        existing.okStreak = (existing.okStreak || 0) + 1;
-        // Regola C: rimuovi dopo 2 corrette consecutive
-        if(existing.okStreak >= 2){
-          delete qErrMap[k];
-        }else{
-          qErrMap[k] = existing;
-        }
-        saveQuizErrorsMap(qErrMap);
-      }
-      return;
-    }
-
-    // wrong: crea/aggiorna
-    const e = existing ? existing : {y:cur.y,m:cur.m,d:cur.d, wrongCount:0, okStreak:0};
-    e.wrongCount = (e.wrongCount||0) + 1;
-    e.okStreak = 0;
-    qErrMap[k] = e;
-    saveQuizErrorsMap(qErrMap);
-  }
-
-  function quizAnswer(chosenIdx){
-    if(!cur || quizLocked) return;
-
-    const correctIdx = weekday(cur.y, cur.m, cur.d);
-    const ok = (chosenIdx === correctIdx);
-
-    // progress sempre
-    qProg.n += 1;
-    if(ok){
-      qProg.ok += 1;
-      qProg.streak += 1;
-      if(qProg.streak > qProg.bestStreak) qProg.bestStreak = qProg.streak;
-    }else{
-      qProg.streak = 0;
-    }
-    saveQuizProgress(qProg);
-
-    // tempi + errori solo se toggle ON
-    let elapsed = null;
-    if(quizStatsToggle.checked && tStart){
-      elapsed = (performance.now()-tStart)/1000;
-      qTimes.push(elapsed);
-      saveQuizTimes(qTimes);
-    }
-
-    updateErrorMapOnAnswer(ok, chosenIdx, correctIdx, elapsed);
-
-    // stop timer
-    tStart=null;
-    stopLiveTimer();
-
-    // lock UI
-    quizLocked = true;
-    quizSetButtonsEnabled(false);
-
-    refreshErrorsUI();
-    updateQuizStatsUI();
-
-    // feedback
-    quizMsg.textContent = ok ? "Corretto." : "Errato.";
-    const leap = isLeap(cur.y);
-    quizSub.innerHTML =
-      `${giorni[correctIdx]} (${giorniShort[correctIdx]}) · ${leap ? "bisestile" : "non bisestile"}<br>` +
-      `<span style="font-weight:900">${quizHeaderText()}</span>`;
-
-    setBottom();
-  }
-
-  function bottomAction(){
-    if(!cur) return;
-
-    if(mode==="quiz"){
-      newDate(); // skip o next
-      return;
-    }
-
-    // training
-    if(!shown) revealTraining();
-    else newDate();
-  }
-
-  function toggleSave(){
-    if(!cur) return;
-    const k = keyOf(cur.y, cur.m, cur.d);
-    const already = isSavedDate(cur.y, cur.m, cur.d);
-
-    if(already){
-      saved = saved.filter(x => keyOf(x.y,x.m,x.d) !== k);
-    }else{
-      saved.push({y:cur.y,m:cur.m,d:cur.d});
-    }
-    saveSaved(saved);
-    refreshSavedUI();
-    updateSaveButton();
-    syncRangeEnabled();
-  }
-
-  function clearSaved(){
-    if(saved.length===0) return;
-    if(!confirm("Svuotare tutte le salvate?")) return;
-    saved = [];
-    saveSaved(saved);
-    refreshSavedUI();
-    syncRangeEnabled();
-    if(getSrcMode()==="saved"){
-      newDate();
-    }
-  }
-
-  function resetQuizAll(){
-    if(!confirm("Reset quiz? (progressi, tempi, errori)")) return;
-
-    qProg = {n:0, ok:0, streak:0, bestStreak:0};
-    qTimes = [];
-    qErrMap = {};
-    lastErrKey = null;
-
-    saveQuizProgress(qProg);
-    clearQuizTimes();
-    clearQuizErrors();
-
-    refreshErrorsUI();
-    updateQuizStatsUI();
-
-    quizMsg.textContent = "";
-    quizSub.textContent = "";
-    quizLocked = false;
-    quizSetButtonsEnabled(true);
-
-    newDate();
-  }
-
-  function clearOnlyErrors(){
-    if(Object.keys(qErrMap).length===0) return;
-    if(!confirm("Svuotare tutti gli errori salvati?")) return;
-    qErrMap = {};
-    lastErrKey = null;
-    clearQuizErrors();
-    refreshErrorsUI();
-    updateQuizStatsUI();
-
-    if(getQuizMode()==="errors"){
-      newDate();
-    }
-  }
-
-  // ====== Events ======
-  document.querySelectorAll('input[name="srcMode"]').forEach(r=>{
-    r.addEventListener("change", ()=>{
-      syncRangeEnabled();
-      refreshSavedUI();
+  // listeners radio
+  [...setupRadios.querySelectorAll("input[type=radio]")].forEach(inp=>{
+    inp.addEventListener("change", ()=>{
+      syncSetupEnabled();
       newDate();
     });
   });
 
-  mode1900.addEventListener("change", ()=>{
-    applyMode1900();
-    newDate();
-  });
+  refreshCounts();
+}
 
-  fmtNum.addEventListener("change", ()=>{
-    if(cur) dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
-  });
+function refreshCounts(){
+  const sc = document.getElementById("savedCount");
+  if(sc) sc.textContent = saved.length;
 
-  tabTraining.addEventListener("click", ()=> setMode("training"));
-  tabQuiz.addEventListener("click", ()=> setMode("quiz"));
+  const ec = document.getElementById("errCount");
+  if(ec) ec.textContent = Object.keys(qErrMap).length;
 
-  revealBtn.addEventListener("click", bottomAction);
-  saveBtn.addEventListener("click", toggleSave);
-  clearSavedBtn.addEventListener("click", clearSaved);
+  if(mode==="training"){
+    setupClearBtn.style.display = (getTrainingSrc()==="saved" && saved.length>0) ? "inline-block" : "none";
+  }
+  if(mode==="quiz"){
+    setupClearBtn.style.display = (getQuizSrc()==="errors" && Object.keys(qErrMap).length>0) ? "inline-block" : "none";
+  }
+}
 
-  document.querySelectorAll('input[name="quizMode"]').forEach(r=>{
-    r.addEventListener("change", ()=>{
-      quizMsg.textContent = "";
-      quizSub.textContent = "";
-      newDate();
-    });
-  });
+function getTrainingSrc(){
+  const sel = document.querySelector('input[name="srcMode"]:checked');
+  return sel ? sel.value : "range";
+}
+function getQuizSrc(){
+  const sel = document.querySelector('input[name="quizSrc"]:checked');
+  return sel ? sel.value : "range";
+}
 
-  quizStatsToggle.addEventListener("change", ()=>{
-    saveQuizStatsEnabled(quizStatsToggle.checked);
+function syncSetupEnabled(){
+  const inVerify = (mode==="verify");
+  document.getElementById("setupCard").style.display = inVerify ? "none" : "block";
+}
 
-    // se stai in quiz e devi rispondere, riallinea timer
-    stopLiveTimer();
-    tStart=null;
-    if(mode==="quiz" && !quizLocked && quizStatsToggle.checked){
-      tStart=performance.now();
-      startLiveTimer();
-    }
-    updateQuizStatsUI();
-  });
+function applyMode1900(){
+  if(mode1900.checked){
+    minY.value=1900;
+    maxY.value=2099;
+  }
+}
 
-  resetQuizBtn.addEventListener("click", resetQuizAll);
-  clearErrBtn.addEventListener("click", clearOnlyErrors);
+function pickFromRange(){
+  applyMode1900();
+  const min=Number(minY.value), max=Number(maxY.value);
+  if(!Number.isFinite(min)||!Number.isFinite(max)||min>max){
+    alert("Intervallo anni non valido.");
+    return null;
+  }
+  const y=randInt(min,max);
+  const m=randInt(1,12);
+  const d=randInt(1,dim(y,m));
+  return {y,m,d};
+}
 
-  // ====== Init ======
-  quizStatsToggle.checked = loadQuizStatsEnabled();
+function pickFromSaved(){
+  if(saved.length===0) return null;
+  return saved[randInt(0, saved.length-1)];
+}
 
-  refreshSavedUI();
-  syncRangeEnabled();
+function pickFromErrors(){
+  const keys = Object.keys(qErrMap);
+  if(!keys.length) return null;
 
-  refreshErrorsUI();
-  quizRenderButtons();
+  let k = keys[randInt(0, keys.length-1)];
+  if(keys.length>1 && k===lastErrKey){
+    const alt = keys.find(x=>x!==lastErrKey);
+    if(alt) k = alt;
+  }
+  lastErrKey = k;
+  const e = qErrMap[k];
+  return {y:e.y,m:e.m,d:e.d, _errKey:k};
+}
+
+function isSavedDate(y,m,d){
+  const k=keyOf(y,m,d);
+  return saved.some(x=>keyOf(x.y,x.m,x.d)===k);
+}
+
+/* ===========================
+   Stats UI
+=========================== */
+function updateTrainingStatsUI(){
+  if(!(mode==="training" && tStatsOn)){
+    trainingStatsCard.style.display = "none";
+    return;
+  }
+  trainingStatsCard.style.display = "block";
+
+  const n=tTimes.length;
+  tNOut.textContent = n;
+
+  tAvgOut.textContent = fmtSec(mean(tTimes));
+  tMedOut.textContent = fmtSec(median(tTimes));
+  tBestOut.textContent = n ? fmtSec(Math.min(...tTimes)) : "—";
+  tWorstOut.textContent = n ? fmtSec(Math.max(...tTimes)) : "—";
+
+  if(!tStart){
+    const last = n ? tTimes[n-1] : NaN;
+    tTimeTop.textContent = n ? (fmtSec(last)+" s") : "—";
+  }
+}
+
+function updateQuizStatsUI(){
+  if(!(mode==="quiz" && qStatsOn)){
+    quizStatsCard.style.display = "none";
+    return;
+  }
+  quizStatsCard.style.display = "block";
+
+  const errN = Object.keys(qErrMap).length;
+  qTopLeft.textContent = `OK ${qProg.ok}/${qProg.n}`;
+  qStreakOut.textContent = qProg.streak;
+  qBestStreakOut.textContent = qProg.bestStreak;
+  qSessionOut.textContent = `${qProg.ok}/${qProg.n}`;
+  qErrCountOut.textContent = errN;
+
+  const n=qTimes.length;
+  qAvgOut.textContent = fmtSec(mean(qTimes));
+  qMedOut.textContent = fmtSec(median(qTimes));
+  qBestOut.textContent = n ? fmtSec(Math.min(...qTimes)) : "—";
+  qWorstOut.textContent = n ? fmtSec(Math.max(...qTimes)) : "—";
+
+  if(!tStart){
+    const last = n ? qTimes[n-1] : NaN;
+    qTimeTop.textContent = n ? (fmtSec(last)+" s") : "—";
+  }
+}
+
+/* ===========================
+   Mode switch
+=========================== */
+function setMode(newMode){
+  mode = newMode;
+
+  tabTraining.classList.toggle("active", mode==="training");
+  tabQuiz.classList.toggle("active", mode==="quiz");
+  tabVerify.classList.toggle("active", mode==="verify");
+
+  // blocks
+  trainingBlock.style.display = (mode==="training") ? "block" : "none";
+  quizBlock.style.display = (mode==="quiz") ? "block" : "none";
+  verifyBlock.style.display = (mode==="verify") ? "block" : "none";
+
+  // stats toggle label visibility
+  statsToggleLabel.style.display = (mode==="verify") ? "none" : "flex";
+
+  // bottom bar visibility
+  bottomBar.style.display = (mode==="verify") ? "none" : "flex";
+
+  // reset UI states
+  clearResultColor();
+  quizMsg.textContent = "";
+  answerOut.textContent = "";
+  verifyOut.textContent = "";
+  saveBtn.style.display = "none";
+
+  revealed = false;
+  quizLocked = false;
+
+  // apply stats checkbox for this mode
+  if(mode==="training"){
+    statsToggle.checked = tStatsOn;
+  }else if(mode==="quiz"){
+    statsToggle.checked = qStatsOn;
+  }
+
+  buildSetupRadios();
+  syncSetupEnabled();
+
+  stopLiveTimer();
+  tStart = null;
+
+  updateTrainingStatsUI();
   updateQuizStatsUI();
 
-  newDate();
+  if(mode!=="verify"){
+    newDate();
+  }
+}
 
-  // Register SW
+/* ===========================
+   Bottom button behavior
+=========================== */
+function setBottom(){
+  bottomBtn.disabled = !cur;
+
+  if(!cur) return;
+
+  if(mode==="training"){
+    bottomBtn.textContent = revealed ? "Nuova data" : "Mostra";
+    bottomBtn.className = revealed ? "bottomNext" : "";
+    return;
+  }
+
+  if(mode==="quiz"){
+    bottomBtn.textContent = quizLocked ? "Prossima data" : "Skip";
+    bottomBtn.className = quizLocked ? "bottomNext" : "";
+    return;
+  }
+}
+
+function bottomAction(){
+  if(!cur) return;
+
+  if(mode==="training"){
+    if(!revealed) revealTraining();
+    else newDate();
+    return;
+  }
+
+  if(mode==="quiz"){
+    newDate(); // skip o prossima
+    return;
+  }
+}
+
+/* ===========================
+   Training logic
+=========================== */
+function revealTraining(){
+  if(!cur) return;
+
+  // se stats ON e timer attivo => salva tempo
+  if(tStatsOn && tStart){
+    const elapsed = (performance.now()-tStart)/1000;
+    tTimes.push(elapsed);
+    saveArr(LS_TRAIN_TIMES, tTimes, 5000);
+    tStart=null;
+    stopLiveTimer();
+    updateTrainingStatsUI();
+  }
+
+  const w = weekday(cur.y,cur.m,cur.d);
+  const leap = isLeap(cur.y);
+  answerOut.innerHTML = giorni[w] + (leap ? `<div class="leapNote">bisestile</div>` : "");
+
+  revealed = true;
+  setBottom();
+
+  // save button
+  const already = isSavedDate(cur.y,cur.m,cur.d);
+  saveBtn.textContent = already ? "Rimuovi" : "Salva";
+  saveBtn.style.display = "inline-block";
+}
+
+function toggleSave(){
+  if(!cur) return;
+  const k = keyOf(cur.y,cur.m,cur.d);
+  const already = isSavedDate(cur.y,cur.m,cur.d);
+  if(already){
+    saved = saved.filter(x => keyOf(x.y,x.m,x.d)!==k);
+  }else{
+    saved.push({y:cur.y,m:cur.m,d:cur.d});
+  }
+  saveSaved(saved);
+  refreshCounts();
+  if(mode==="training" && revealed){
+    saveBtn.textContent = already ? "Salva" : "Rimuovi";
+  }
+}
+
+function clearSaved(){
+  if(saved.length===0) return;
+  if(!confirm("Svuotare tutte le salvate?")) return;
+  saved = [];
+  saveSaved(saved);
+  refreshCounts();
+  if(mode==="training" && getTrainingSrc()==="saved"){
+    newDate();
+  }
+}
+
+/* ===========================
+   Quiz logic
+=========================== */
+function buildQuizButtons(){
+  quizRows.innerHTML = "";
+
+  const makeBtn = (idx) => {
+    const b=document.createElement("button");
+    b.className="quizBtn";
+    b.textContent=giorni[idx];
+    b.addEventListener("click", ()=>quizAnswer(idx));
+    return b;
+  };
+
+  const r1=document.createElement("div"); r1.className="quizRow";
+  r1.appendChild(makeBtn(0)); // Dom
+  r1.appendChild(makeBtn(1)); // Lun
+
+  const r2=document.createElement("div"); r2.className="quizRow";
+  r2.appendChild(makeBtn(2)); // Mar
+  r2.appendChild(makeBtn(3)); // Mer
+  r2.appendChild(makeBtn(4)); // Gio
+
+  const r3=document.createElement("div"); r3.className="quizRow";
+  r3.appendChild(makeBtn(5)); // Ven
+  r3.appendChild(makeBtn(6)); // Sab
+
+  quizRows.appendChild(r1);
+  quizRows.appendChild(r2);
+  quizRows.appendChild(r3);
+}
+
+function setQuizButtonsEnabled(on){
+  [...quizRows.querySelectorAll("button")].forEach(b=>b.disabled=!on);
+}
+
+function clearErrors(){
+  const n = Object.keys(qErrMap).length;
+  if(!n) return;
+  if(!confirm("Svuotare tutti gli errori?")) return;
+  qErrMap = {};
+  saveErrMap(qErrMap);
+  refreshCounts();
+  if(mode==="quiz" && getQuizSrc()==="errors"){
+    // torna a range automaticamente
+    const r = document.querySelector('input[name="quizSrc"][value="range"]');
+    if(r) r.checked = true;
+    buildSetupRadios();
+  }
+  newDate();
+}
+
+function resetQuizStats(){
+  if(!confirm("Reset quiz? (progressi, tempi, errori)")) return;
+  qProg = {n:0, ok:0, streak:0, bestStreak:0};
+  qTimes = [];
+  qErrMap = {};
+  saveQuizProg(qProg);
+  saveArr(LS_QUIZ_TIMES, qTimes, 5000);
+  saveErrMap(qErrMap);
+  refreshCounts();
+  updateQuizStatsUI();
+  newDate();
+}
+
+function updateErrorMapAfterAnswer(ok){
+  if(!qStatsOn) return; // stats OFF => niente tempi + niente errori
+
+  const k = keyOf(cur.y,cur.m,cur.d);
+  const ex = qErrMap[k];
+
+  if(ok){
+    if(ex){
+      ex.okStreak = (ex.okStreak||0) + 1;
+      if(ex.okStreak >= 2){
+        delete qErrMap[k]; // regola C
+      }else{
+        qErrMap[k] = ex;
+      }
+      saveErrMap(qErrMap);
+    }
+    return;
+  }
+
+  // wrong
+  const e = ex ? ex : {y:cur.y,m:cur.m,d:cur.d, wrongCount:0, okStreak:0};
+  e.wrongCount = (e.wrongCount||0) + 1;
+  e.okStreak = 0;
+  qErrMap[k]=e;
+  saveErrMap(qErrMap);
+}
+
+function quizAnswer(chosenIdx){
+  if(!cur || quizLocked) return;
+
+  const correctIdx = weekday(cur.y,cur.m,cur.d);
+  const ok = (chosenIdx === correctIdx);
+
+  // progress sempre
+  qProg.n += 1;
+  if(ok){
+    qProg.ok += 1;
+    qProg.streak += 1;
+    if(qProg.streak > qProg.bestStreak) qProg.bestStreak = qProg.streak;
+  }else{
+    qProg.streak = 0;
+  }
+  saveQuizProg(qProg);
+
+  // tempi solo se stats ON e timer attivo
+  if(qStatsOn && tStart){
+    const elapsed=(performance.now()-tStart)/1000;
+    qTimes.push(elapsed);
+    saveArr(LS_QUIZ_TIMES, qTimes, 5000);
+  }
+
+  updateErrorMapAfterAnswer(ok);
+
+  // stop timer
+  tStart=null;
+  stopLiveTimer();
+
+  // lock + feedback
+  quizLocked = true;
+  setQuizButtonsEnabled(false);
+
+  // colore box + testo
+  clearResultColor();
+  mainCard.classList.add(ok ? "mainOk" : "mainBad");
+
+  const leap = isLeap(cur.y);
+  quizMsg.innerHTML = (ok ? "Corretto" : "Errato.") +
+    `<div style="font-size:22px;font-weight:900;margin-top:10px;">${giorni[correctIdx]}</div>` +
+    (leap ? `<div class="leapNote">bisestile</div>` : "");
+
+  refreshCounts();
+  updateQuizStatsUI();
+  setBottom();
+}
+
+/* ===========================
+   Common: new date
+=========================== */
+function clearResultColor(){
+  mainCard.classList.remove("mainOk","mainBad");
+}
+
+function newDate(){
+  clearResultColor();
+
+  let next=null;
+
+  if(mode==="training"){
+    if(getTrainingSrc()==="saved"){
+      next = pickFromSaved();
+      if(!next){
+        alert("Nessuna data salvata. Passo a Range.");
+        const r = document.querySelector('input[name="srcMode"][value="range"]');
+        if(r) r.checked = true;
+        buildSetupRadios();
+        next = pickFromRange();
+      }
+    }else{
+      next = pickFromRange();
+    }
+  }
+
+  if(mode==="quiz"){
+    if(getQuizSrc()==="errors"){
+      next = pickFromErrors();
+      if(!next){
+        alert("Nessun errore salvato. Passo a Range.");
+        const r = document.querySelector('input[name="quizSrc"][value="range"]');
+        if(r) r.checked = true;
+        buildSetupRadios();
+        next = pickFromRange();
+      }
+    }else{
+      next = pickFromRange();
+    }
+  }
+
+  if(!next) return;
+
+  cur = {y:next.y,m:next.m,d:next.d};
+  revealed = false;
+  quizLocked = false;
+
+  // render
+  dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
+  answerOut.textContent = "";
+  quizMsg.textContent = "";
+  verifyOut.textContent = "";
+
+  // buttons
+  saveBtn.style.display = "none";
+  if(mode==="quiz") setQuizButtonsEnabled(true);
+
+  // timer rules:
+  // - se stats ON: parte solo se NON "pendingStart" e se già attivo da prima
+  // - se "pendingStart" è true => parte ora e poi pending=false
+  stopLiveTimer();
+  tStart = null;
+
+  if(mode==="training" && tStatsOn){
+    if(tPendingStart){
+      tPendingStart=false;
+      tStart=performance.now();
+      startLiveTimer(tTimeTop);
+    }else{
+      // timer attivo normalmente a ogni nuova data (dopo che l'hai abilitato)
+      tStart=performance.now();
+      startLiveTimer(tTimeTop);
+    }
+  }
+
+  if(mode==="quiz" && qStatsOn){
+    if(qPendingStart){
+      qPendingStart=false;
+      tStart=performance.now();
+      startLiveTimer(qTimeTop);
+    }else{
+      tStart=performance.now();
+      startLiveTimer(qTimeTop);
+    }
+  }
+
+  updateTrainingStatsUI();
+  updateQuizStatsUI();
+  setBottom();
+}
+
+/* ===========================
+   Verify
+=========================== */
+function parseDDMMYYYY(s){
+  const t = (s||"").trim();
+  const m = t.match(/^(\d{1,2})[\/\-\.\s](\d{1,2})[\/\-\.\s](\d{4})$/);
+  if(!m) return null;
+  const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
+  if(!(Number.isFinite(d)&&Number.isFinite(mo)&&Number.isFinite(y))) return null;
+  if(mo<1||mo>12) return null;
+  if(d<1||d>dim(y,mo)) return null;
+  return {d, m:mo, y};
+}
+
+function doVerify(){
+  const p = parseDDMMYYYY(verifyIn.value);
+  if(!p){
+    verifyOut.textContent = "Data non valida.";
+    return;
+  }
+  const w = weekday(p.y,p.m,p.d);
+  const leap = isLeap(p.y);
+  verifyOut.innerHTML = `${giorni[w]}<div class="leapNote">${leap ? "bisestile" : "non bisestile"}</div>`;
+}
+
+/* ===========================
+   Stats toggle handler
+=========================== */
+function onStatsToggleChanged(){
+  if(mode==="training"){
+    const newVal = statsToggle.checked;
+    if(newVal === tStatsOn) return;
+    tStatsOn = newVal;
+    saveBool(LS_TRAIN_STATS_ON, tStatsOn);
+
+    // regola: se attivi ORA, timer parte dalla prossima data
+    stopLiveTimer();
+    tStart = null;
+    if(tStatsOn){
+      tPendingStart = true;
+    }else{
+      tPendingStart = false;
+    }
+    updateTrainingStatsUI();
+    setBottom();
+    return;
+  }
+
+  if(mode==="quiz"){
+    const newVal = statsToggle.checked;
+    if(newVal === qStatsOn) return;
+    qStatsOn = newVal;
+    saveBool(LS_QUIZ_STATS_ON, qStatsOn);
+
+    // regola: se attivi ORA, timer parte dalla prossima data
+    stopLiveTimer();
+    tStart = null;
+    if(qStatsOn){
+      qPendingStart = true;
+    }else{
+      qPendingStart = false;
+    }
+    updateQuizStatsUI();
+    setBottom();
+    return;
+  }
+}
+
+/* ===========================
+   Events
+=========================== */
+tabTraining.addEventListener("click", ()=>setMode("training"));
+tabQuiz.addEventListener("click", ()=>setMode("quiz"));
+tabVerify.addEventListener("click", ()=>setMode("verify"));
+
+statsToggle.addEventListener("change", onStatsToggleChanged);
+
+mode1900.addEventListener("change", ()=>{ applyMode1900(); if(mode!=="verify") newDate(); });
+fmtNum.addEventListener("change", ()=>{ if(cur) dateOut.textContent = fmtDate(cur.d,cur.m,cur.y); });
+
+bottomBtn.addEventListener("click", bottomAction);
+
+saveBtn.addEventListener("click", toggleSave);
+
+tResetBtn.addEventListener("click", ()=>{
+  if(!confirm("Reset statistiche training?")) return;
+  tTimes = [];
+  saveArr(LS_TRAIN_TIMES, tTimes, 5000);
+  stopLiveTimer();
+  tStart=null;
+  updateTrainingStatsUI();
+});
+
+qResetBtn.addEventListener("click", resetQuizStats);
+
+verifyBtn.addEventListener("click", doVerify);
+verifyIn.addEventListener("keydown", (e)=>{
+  if(e.key==="Enter") doVerify();
+});
+
+/* ===========================
+   Init
+=========================== */
+function init(){
+  // stats toggles
+  tStatsOn = loadBool(LS_TRAIN_STATS_ON, false);
+  qStatsOn = loadBool(LS_QUIZ_STATS_ON, false);
+
+  buildQuizButtons();
+
+  // start on training
+  setMode("training");
+
+  // SW
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("./sw.js").catch(()=>{});
   }
+}
+
+init();
 </script>
 
 </body>
