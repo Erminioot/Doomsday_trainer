@@ -1,4 +1,4 @@
-const CACHE = "doomsday-cache-v4";
+const CACHE = "doomsday-cache-v6";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,7 +7,6 @@ const ASSETS = [
   "./icon-512.png"
 ];
 
-// Install: pre-cache
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) => cache.addAll(ASSETS))
@@ -15,7 +14,6 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -25,14 +23,10 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch strategy:
-// - HTML/navigation: network-first (fresh when online, offline fallback)
-// - Others: cache-first (fast, offline-friendly)
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Only handle same-origin
   if (url.origin !== location.origin) return;
 
   const isNav =
