@@ -13,7 +13,7 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       margin:14px;
       max-width:760px;
-      padding-bottom:160px; /* spazio bottom bar */
+      padding-bottom:160px;
     }
 
     .tabs{
@@ -116,10 +116,6 @@
       margin-top:8px;
       flex-wrap:wrap;
     }
-    .setupDisabled{
-      opacity:.55;
-      pointer-events:none;
-    }
 
     /* Main (date + answer/quiz) */
     .mainCard{transition:background-color .12s ease;}
@@ -131,6 +127,7 @@
       font-weight:900;
       text-align:center;
       margin:14px 0 8px;
+      min-height:52px; /* evita salto layout quando vuota in Verifica */
     }
     .answer{
       font-size:30px;
@@ -183,6 +180,22 @@
       font-size:44px;
       font-weight:900;
       margin:14px 0 8px;
+    }
+    .quizNextWrap{
+      display:none;
+      justify-content:center;
+      margin-top:12px;
+    }
+    .quizNextBtn{
+      width:92%;
+      max-width:560px;
+      font-size:26px;
+      padding:20px 16px;
+      border-radius:14px;
+      border:1px solid #bbb;
+      background:#fff;
+      font-weight:900;
+      cursor:pointer;
     }
 
     /* Stats card (shared style) */
@@ -237,7 +250,7 @@
       padding:12px 12px;
       border-radius:12px;
       border:1px solid #ccc;
-      width:210px;
+      width:220px;
       text-align:center;
     }
     .verifyOut{
@@ -330,6 +343,10 @@
     <div id="quizBlock">
       <div class="quizRows" id="quizRows"></div>
       <div class="quizMsg" id="quizMsg"></div>
+
+      <div class="quizNextWrap" id="quizNextWrap">
+        <button class="quizNextBtn" id="quizNextBtn">Prossima data</button>
+      </div>
     </div>
 
     <!-- Verify -->
@@ -420,17 +437,14 @@ function median(arr){
 /* ===========================
    Storage keys
 =========================== */
-// salvate (training)
 const LS_SAVED = "doomsday_saved_v1";
 
-// training stats
 const LS_TRAIN_TIMES = "doomsday_training_times_v2";
 const LS_TRAIN_STATS_ON = "doomsday_training_stats_on_v2";
 
-// quiz progress + stats
-const LS_QUIZ_PROG = "doomsday_quiz_progress_v2";      // n, ok, streak, bestStreak
+const LS_QUIZ_PROG = "doomsday_quiz_progress_v2";
 const LS_QUIZ_TIMES = "doomsday_quiz_times_v2";
-const LS_QUIZ_ERRORS = "doomsday_quiz_errors_v2";      // map errori con okStreak per regola C
+const LS_QUIZ_ERRORS = "doomsday_quiz_errors_v2";
 const LS_QUIZ_STATS_ON = "doomsday_quiz_stats_on_v2";
 
 /* ===========================
@@ -531,7 +545,6 @@ const minY=document.getElementById("minY");
 const maxY=document.getElementById("maxY");
 const mode1900=document.getElementById("mode1900");
 const fmtNum=document.getElementById("fmtNum");
-const rangeBlock=document.getElementById("rangeBlock");
 
 const mainCard=document.getElementById("mainCard");
 const dateOut=document.getElementById("dateOut");
@@ -543,6 +556,8 @@ const saveBtn=document.getElementById("saveBtn");
 const quizBlock=document.getElementById("quizBlock");
 const quizRows=document.getElementById("quizRows");
 const quizMsg=document.getElementById("quizMsg");
+const quizNextWrap=document.getElementById("quizNextWrap");
+const quizNextBtn=document.getElementById("quizNextBtn");
 
 const verifyBlock=document.getElementById("verifyBlock");
 const verifyIn=document.getElementById("verifyIn");
@@ -660,7 +675,7 @@ function buildSetupRadios(){
 
     setupClearBtn.textContent = "Svuota salvate";
     setupClearBtn.onclick = clearSaved;
-    setupClearBtn.style.display = (saved.length>0) ? "inline-block" : "none";
+    setupClearBtn.style.display = (getTrainingSrc()==="saved" && saved.length>0) ? "inline-block" : "none";
   }
 
   if(mode === "quiz"){
@@ -673,19 +688,17 @@ function buildSetupRadios(){
 
     setupClearBtn.textContent = "Svuota errori";
     setupClearBtn.onclick = clearErrors;
-    setupClearBtn.style.display = (Object.keys(qErrMap).length>0) ? "inline-block" : "none";
+    setupClearBtn.style.display = (getQuizSrc()==="errors" && Object.keys(qErrMap).length>0) ? "inline-block" : "none";
   }
 
   if(mode === "verify"){
-    // niente radio in verifica
     setupRadios.innerHTML = "";
     setupClearBtn.style.display = "none";
   }
 
-  // listeners radio
   [...setupRadios.querySelectorAll("input[type=radio]")].forEach(inp=>{
     inp.addEventListener("change", ()=>{
-      syncSetupEnabled();
+      refreshCounts();
       newDate();
     });
   });
@@ -718,8 +731,7 @@ function getQuizSrc(){
 }
 
 function syncSetupEnabled(){
-  const inVerify = (mode==="verify");
-  document.getElementById("setupCard").style.display = inVerify ? "none" : "block";
+  document.getElementById("setupCard").style.display = (mode==="verify") ? "none" : "block";
 }
 
 function applyMode1900(){
@@ -826,15 +838,11 @@ function setMode(newMode){
   tabQuiz.classList.toggle("active", mode==="quiz");
   tabVerify.classList.toggle("active", mode==="verify");
 
-  // blocks
   trainingBlock.style.display = (mode==="training") ? "block" : "none";
   quizBlock.style.display = (mode==="quiz") ? "block" : "none";
   verifyBlock.style.display = (mode==="verify") ? "block" : "none";
 
-  // stats toggle label visibility
   statsToggleLabel.style.display = (mode==="verify") ? "none" : "flex";
-
-  // bottom bar visibility
   bottomBar.style.display = (mode==="verify") ? "none" : "flex";
 
   // reset UI states
@@ -844,10 +852,17 @@ function setMode(newMode){
   verifyOut.textContent = "";
   saveBtn.style.display = "none";
 
+  // quiz UI pieces
+  quizRows.style.display = "block";
+  quizNextWrap.style.display = "none";
+  setQuizButtonsEnabled(true);
+
   revealed = false;
   quizLocked = false;
 
-  // apply stats checkbox for this mode
+  stopLiveTimer();
+  tStart = null;
+
   if(mode==="training"){
     statsToggle.checked = tStatsOn;
   }else if(mode==="quiz"){
@@ -857,15 +872,22 @@ function setMode(newMode){
   buildSetupRadios();
   syncSetupEnabled();
 
-  stopLiveTimer();
-  tStart = null;
-
   updateTrainingStatsUI();
   updateQuizStatsUI();
 
-  if(mode!=="verify"){
-    newDate();
+  if(mode==="verify"){
+    // Nessuna data visibile in Verifica
+    cur = null;
+    dateOut.textContent = "";
+    // prepara input
+    verifyIn.value = "";
+    verifyOut.textContent = "";
+    // focus (tastiera numerica più probabile)
+    setTimeout(()=>verifyIn.focus(), 0);
+    return;
   }
+
+  newDate();
 }
 
 /* ===========================
@@ -873,7 +895,6 @@ function setMode(newMode){
 =========================== */
 function setBottom(){
   bottomBtn.disabled = !cur;
-
   if(!cur) return;
 
   if(mode==="training"){
@@ -899,7 +920,7 @@ function bottomAction(){
   }
 
   if(mode==="quiz"){
-    newDate(); // skip o prossima
+    newDate();
     return;
   }
 }
@@ -910,7 +931,6 @@ function bottomAction(){
 function revealTraining(){
   if(!cur) return;
 
-  // se stats ON e timer attivo => salva tempo
   if(tStatsOn && tStart){
     const elapsed = (performance.now()-tStart)/1000;
     tTimes.push(elapsed);
@@ -927,7 +947,6 @@ function revealTraining(){
   revealed = true;
   setBottom();
 
-  // save button
   const already = isSavedDate(cur.y,cur.m,cur.d);
   saveBtn.textContent = already ? "Rimuovi" : "Salva";
   saveBtn.style.display = "inline-block";
@@ -975,17 +994,17 @@ function buildQuizButtons(){
   };
 
   const r1=document.createElement("div"); r1.className="quizRow";
-  r1.appendChild(makeBtn(0)); // Dom
-  r1.appendChild(makeBtn(1)); // Lun
+  r1.appendChild(makeBtn(0));
+  r1.appendChild(makeBtn(1));
 
   const r2=document.createElement("div"); r2.className="quizRow";
-  r2.appendChild(makeBtn(2)); // Mar
-  r2.appendChild(makeBtn(3)); // Mer
-  r2.appendChild(makeBtn(4)); // Gio
+  r2.appendChild(makeBtn(2));
+  r2.appendChild(makeBtn(3));
+  r2.appendChild(makeBtn(4));
 
   const r3=document.createElement("div"); r3.className="quizRow";
-  r3.appendChild(makeBtn(5)); // Ven
-  r3.appendChild(makeBtn(6)); // Sab
+  r3.appendChild(makeBtn(5));
+  r3.appendChild(makeBtn(6));
 
   quizRows.appendChild(r1);
   quizRows.appendChild(r2);
@@ -1004,7 +1023,6 @@ function clearErrors(){
   saveErrMap(qErrMap);
   refreshCounts();
   if(mode==="quiz" && getQuizSrc()==="errors"){
-    // torna a range automaticamente
     const r = document.querySelector('input[name="quizSrc"][value="range"]');
     if(r) r.checked = true;
     buildSetupRadios();
@@ -1026,7 +1044,7 @@ function resetQuizStats(){
 }
 
 function updateErrorMapAfterAnswer(ok){
-  if(!qStatsOn) return; // stats OFF => niente tempi + niente errori
+  if(!qStatsOn) return;
 
   const k = keyOf(cur.y,cur.m,cur.d);
   const ex = qErrMap[k];
@@ -1035,7 +1053,7 @@ function updateErrorMapAfterAnswer(ok){
     if(ex){
       ex.okStreak = (ex.okStreak||0) + 1;
       if(ex.okStreak >= 2){
-        delete qErrMap[k]; // regola C
+        delete qErrMap[k];
       }else{
         qErrMap[k] = ex;
       }
@@ -1044,7 +1062,6 @@ function updateErrorMapAfterAnswer(ok){
     return;
   }
 
-  // wrong
   const e = ex ? ex : {y:cur.y,m:cur.m,d:cur.d, wrongCount:0, okStreak:0};
   e.wrongCount = (e.wrongCount||0) + 1;
   e.okStreak = 0;
@@ -1058,7 +1075,6 @@ function quizAnswer(chosenIdx){
   const correctIdx = weekday(cur.y,cur.m,cur.d);
   const ok = (chosenIdx === correctIdx);
 
-  // progress sempre
   qProg.n += 1;
   if(ok){
     qProg.ok += 1;
@@ -1069,7 +1085,6 @@ function quizAnswer(chosenIdx){
   }
   saveQuizProg(qProg);
 
-  // tempi solo se stats ON e timer attivo
   if(qStatsOn && tStart){
     const elapsed=(performance.now()-tStart)/1000;
     qTimes.push(elapsed);
@@ -1078,15 +1093,16 @@ function quizAnswer(chosenIdx){
 
   updateErrorMapAfterAnswer(ok);
 
-  // stop timer
   tStart=null;
   stopLiveTimer();
 
-  // lock + feedback
   quizLocked = true;
   setQuizButtonsEnabled(false);
 
-  // colore box + testo
+  // QUIZ: sostituisci i 7 tasti con "Prossima data" nel box
+  quizRows.style.display = "none";
+  quizNextWrap.style.display = "flex";
+
   clearResultColor();
   mainCard.classList.add(ok ? "mainOk" : "mainBad");
 
@@ -1148,19 +1164,25 @@ function newDate(){
   revealed = false;
   quizLocked = false;
 
-  // render
+  // render date
   dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
+
+  // clear outputs
   answerOut.textContent = "";
   quizMsg.textContent = "";
   verifyOut.textContent = "";
 
-  // buttons
+  // training save btn
   saveBtn.style.display = "none";
-  if(mode==="quiz") setQuizButtonsEnabled(true);
 
-  // timer rules:
-  // - se stats ON: parte solo se NON "pendingStart" e se già attivo da prima
-  // - se "pendingStart" è true => parte ora e poi pending=false
+  // quiz: ripristina tasti
+  if(mode==="quiz"){
+    quizRows.style.display = "block";
+    quizNextWrap.style.display = "none";
+    setQuizButtonsEnabled(true);
+  }
+
+  // timer rules
   stopLiveTimer();
   tStart = null;
 
@@ -1170,7 +1192,6 @@ function newDate(){
       tStart=performance.now();
       startLiveTimer(tTimeTop);
     }else{
-      // timer attivo normalmente a ogni nuova data (dopo che l'hai abilitato)
       tStart=performance.now();
       startLiveTimer(tTimeTop);
     }
@@ -1195,19 +1216,34 @@ function newDate(){
 /* ===========================
    Verify
 =========================== */
-function parseDDMMYYYY(s){
+function parseDateFlexible(s){
   const t = (s||"").trim();
-  const m = t.match(/^(\d{1,2})[\/\-\.\s](\d{1,2})[\/\-\.\s](\d{4})$/);
-  if(!m) return null;
-  const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
-  if(!(Number.isFinite(d)&&Number.isFinite(mo)&&Number.isFinite(y))) return null;
-  if(mo<1||mo>12) return null;
-  if(d<1||d>dim(y,mo)) return null;
-  return {d, m:mo, y};
+
+  // 1) dd/mm/yyyy (anche con -, ., spazio)
+  let m = t.match(/^(\d{1,2})[\/\-\.\s](\d{1,2})[\/\-\.\s](\d{4})$/);
+  if(m){
+    const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
+    if(mo<1||mo>12) return null;
+    if(d<1||d>dim(y,mo)) return null;
+    return {d, m:mo, y};
+  }
+
+  // 2) ddmmyyyy (8 cifre)
+  const digits = t.replace(/\D/g,"");
+  if(digits.length===8){
+    const d = Number(digits.slice(0,2));
+    const mo = Number(digits.slice(2,4));
+    const y = Number(digits.slice(4,8));
+    if(mo<1||mo>12) return null;
+    if(d<1||d>dim(y,mo)) return null;
+    return {d, m:mo, y};
+  }
+
+  return null;
 }
 
 function doVerify(){
-  const p = parseDDMMYYYY(verifyIn.value);
+  const p = parseDateFlexible(verifyIn.value);
   if(!p){
     verifyOut.textContent = "Data non valida.";
     return;
@@ -1215,6 +1251,21 @@ function doVerify(){
   const w = weekday(p.y,p.m,p.d);
   const leap = isLeap(p.y);
   verifyOut.innerHTML = `${giorni[w]}<div class="leapNote">${leap ? "bisestile" : "non bisestile"}</div>`;
+}
+
+// Auto-format mentre digiti: usa solo numeri e inserisce / dopo 2 e 4 cifre
+function verifyAutoFormat(){
+  const raw = verifyIn.value;
+  // se l'utente incolla già con slash, lascialo stare
+  if(/[\/\-\.\s]/.test(raw)) return;
+
+  const digits = raw.replace(/\D/g,"").slice(0,8);
+  let out = digits;
+
+  if(digits.length > 2) out = digits.slice(0,2) + "/" + digits.slice(2);
+  if(digits.length > 4) out = digits.slice(0,2) + "/" + digits.slice(2,4) + "/" + digits.slice(4);
+
+  verifyIn.value = out;
 }
 
 /* ===========================
@@ -1227,11 +1278,11 @@ function onStatsToggleChanged(){
     tStatsOn = newVal;
     saveBool(LS_TRAIN_STATS_ON, tStatsOn);
 
-    // regola: se attivi ORA, timer parte dalla prossima data
     stopLiveTimer();
     tStart = null;
+
     if(tStatsOn){
-      tPendingStart = true;
+      tPendingStart = true; // parte dalla prossima data
     }else{
       tPendingStart = false;
     }
@@ -1246,11 +1297,11 @@ function onStatsToggleChanged(){
     qStatsOn = newVal;
     saveBool(LS_QUIZ_STATS_ON, qStatsOn);
 
-    // regola: se attivi ORA, timer parte dalla prossima data
     stopLiveTimer();
     tStart = null;
+
     if(qStatsOn){
-      qPendingStart = true;
+      qPendingStart = true; // parte dalla prossima data
     }else{
       qPendingStart = false;
     }
@@ -1276,6 +1327,10 @@ bottomBtn.addEventListener("click", bottomAction);
 
 saveBtn.addEventListener("click", toggleSave);
 
+quizNextBtn.addEventListener("click", ()=>{
+  if(mode==="quiz") newDate();
+});
+
 tResetBtn.addEventListener("click", ()=>{
   if(!confirm("Reset statistiche training?")) return;
   tTimes = [];
@@ -1285,27 +1340,33 @@ tResetBtn.addEventListener("click", ()=>{
   updateTrainingStatsUI();
 });
 
-qResetBtn.addEventListener("click", resetQuizStats);
+qResetBtn.addEventListener("click", ()=>{
+  if(!confirm("Reset quiz? (progressi, tempi, errori)")) return;
+  qProg = {n:0, ok:0, streak:0, bestStreak:0};
+  qTimes = [];
+  qErrMap = {};
+  saveQuizProg(qProg);
+  saveArr(LS_QUIZ_TIMES, qTimes, 5000);
+  saveErrMap(qErrMap);
+  refreshCounts();
+  updateQuizStatsUI();
+  newDate();
+});
 
 verifyBtn.addEventListener("click", doVerify);
-verifyIn.addEventListener("keydown", (e)=>{
-  if(e.key==="Enter") doVerify();
-});
+verifyIn.addEventListener("keydown", (e)=>{ if(e.key==="Enter") doVerify(); });
+verifyIn.addEventListener("input", verifyAutoFormat);
 
 /* ===========================
    Init
 =========================== */
 function init(){
-  // stats toggles
   tStatsOn = loadBool(LS_TRAIN_STATS_ON, false);
   qStatsOn = loadBool(LS_QUIZ_STATS_ON, false);
 
   buildQuizButtons();
-
-  // start on training
   setMode("training");
 
-  // SW
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("./sw.js").catch(()=>{});
   }
