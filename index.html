@@ -9,11 +9,15 @@
   <meta name="theme-color" content="#ffffff">
 
   <style>
+    :root{
+      --bottomBarPad: 140px; /* spazio per bottom bar fixed */
+    }
+
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       margin:14px;
       max-width:760px;
-      padding-bottom:160px;
+      padding-bottom: var(--bottomBarPad);
     }
 
     .tabs{
@@ -129,6 +133,8 @@
       margin:14px 0 10px;
       min-height:52px;
     }
+    .dateHidden{ display:none; }
+
     .answer{
       font-size:30px;
       font-weight:900;
@@ -154,7 +160,7 @@
     .quizGrid{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:12px 12px; /* spazio verticale + orizzontale */
+      gap:12px 12px;
       margin:12px auto 6px;
       max-width:560px;
     }
@@ -194,8 +200,7 @@
       cursor:pointer;
     }
 
-    /* Stats card (shared style) */
-    #trainingStatsCard, #quizStatsCard{display:none;}
+    /* Stats cards */
     .statsTopRow{
       display:flex;
       align-items:center;
@@ -206,7 +211,7 @@
       font-size:16px;
       font-weight:900;
       white-space:nowrap;
-      min-width:90px; /* tiene allineamenti */
+      min-width:90px;
     }
     .statsTopMid{
       flex:1;
@@ -232,6 +237,10 @@
       font-size:16px;
     }
 
+    #trainingStatsCard{display:none;}
+    #quizSessionCard{display:none;}
+    #quizStatsCard{display:none;}
+
     /* Verify */
     #verifyBlock{display:none;}
     .verifyRow{
@@ -252,16 +261,16 @@
     }
     .verifyOut{
       text-align:center;
-      margin-top:14px;
-      font-size:28px;
+      margin-top:12px;
+      font-size:26px;
       font-weight:900;
-      line-height:1.15;
+      line-height:1.2;
     }
 
     /* Bottom bar */
     .bottomBar{
       position:fixed;
-      left:0; right:0; bottom:160px;
+      left:0; right:0; bottom:0;
       background:#fff;
       padding:10px;
       display:flex;
@@ -272,7 +281,7 @@
     }
     .bottomBar button{
       font-size:22px;
-      padding:26px 22px;
+      padding:22px 22px;
       width:92%;
       max-width:520px;
       border-radius:16px;
@@ -349,6 +358,7 @@
     </div>
   </div>
 
+  <!-- Training stats -->
   <div class="card" id="trainingStatsCard">
     <div class="statsTopRow">
       <div class="statsTopLeft">Prove <span id="tNOut">0</span></div>
@@ -363,23 +373,31 @@
     </div>
   </div>
 
+  <!-- Quiz session (always on in Quiz) -->
+  <div class="card" id="quizSessionCard">
+    <div class="statsBox" style="margin-top:0;">
+      <div class="statRow"><span>Streak</span><strong id="qsStreakOut">0</strong></div>
+      <div class="statRow"><span>Best</span><strong id="qsBestStreakOut">0</strong></div>
+      <div class="statRow"><span>Session</span><strong id="qsSessionOut">0/0</strong></div>
+      <div class="statRow"><span>Errori</span><strong id="qsErrOut">0</strong></div>
+    </div>
+  </div>
+
+  <!-- Quiz stats (only if stats ON) -->
   <div class="card" id="quizStatsCard">
     <div class="statsTopRow">
-      <!-- Left header intentionally blank (no OK x/y) -->
-      <div class="statsTopLeft" id="qTopLeft">&nbsp;</div>
+      <div class="statsTopLeft">&nbsp;</div>
       <div class="statsTopMid" id="qTimeTop">—</div>
       <button id="qResetBtn" class="btnSmall">Reset</button>
     </div>
     <div class="statsBox">
-      <div class="statRow"><span>Streak</span><strong id="qStreakOut">0</strong></div>
-      <div class="statRow"><span>Best</span><strong id="qBestStreakOut">0</strong></div>
-      <div class="statRow"><span>Session</span><strong id="qSessionOut">0/0</strong></div>
-      <div class="statRow"><span>Errori</span><strong id="qErrCountOut">0</strong></div>
-
       <div class="statRow"><span>Media</span><strong id="qAvgOut">—</strong></div>
       <div class="statRow"><span>Mediana</span><strong id="qMedOut">—</strong></div>
       <div class="statRow"><span>Migliore</span><strong id="qBestOut">—</strong></div>
       <div class="statRow"><span>Peggiore</span><strong id="qWorstOut">—</strong></div>
+
+      <div class="statRow"><span>Errori (log)</span><strong id="qErrLogOut">0</strong></div>
+      <div class="statRow"><span>&nbsp;</span><strong>&nbsp;</strong></div>
     </div>
   </div>
 
@@ -408,9 +426,9 @@ function weekday(y,m,d){
 }
 
 function fmtDate(d,m,y){
-  if(fmtNum.checked){
-    return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y;
-  }
+  return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y;
+}
+function fmtDateHuman(d,m,y){
   return d+" "+mesi[m-1]+" "+y;
 }
 
@@ -431,8 +449,8 @@ const LS_SAVED = "doomsday_saved_v1";
 const LS_TRAIN_TIMES = "doomsday_training_times_v2";
 const LS_TRAIN_STATS_ON = "doomsday_training_stats_on_v2";
 
-const LS_QUIZ_PROG = "doomsday_quiz_progress_v2";
-const LS_QUIZ_TIMES = "doomsday_quiz_times_v2";
+// Quiz persistent stats (correct-only times) + errors map
+const LS_QUIZ_TIMES_CORR = "doomsday_quiz_times_correct_v3";
 const LS_QUIZ_ERRORS = "doomsday_quiz_errors_v2";
 const LS_QUIZ_STATS_ON = "doomsday_quiz_stats_on_v2";
 
@@ -476,24 +494,6 @@ function saveSaved(arr){
   try{ localStorage.setItem(LS_SAVED, JSON.stringify(arr)); }catch(e){}
 }
 
-function loadQuizProg(){
-  try{
-    const raw=localStorage.getItem(LS_QUIZ_PROG);
-    const o=raw?JSON.parse(raw):null;
-    if(!o || typeof o!=="object") return {n:0, ok:0, streak:0, bestStreak:0};
-    return {
-      n: Number.isFinite(o.n)?o.n:0,
-      ok: Number.isFinite(o.ok)?o.ok:0,
-      streak: Number.isFinite(o.streak)?o.streak:0,
-      bestStreak: Number.isFinite(o.bestStreak)?o.bestStreak:0
-    };
-  }catch(e){ return {n:0, ok:0, streak:0, bestStreak:0}; }
-}
-function saveQuizProg(o){
-  try{ localStorage.setItem(LS_QUIZ_PROG, JSON.stringify(o)); }catch(e){}
-}
-
-// error map: { "YYYY-MM-DD": {y,m,d, wrongCount, okStreak} }
 function loadErrMap(){
   try{
     const raw=localStorage.getItem(LS_QUIZ_ERRORS);
@@ -553,6 +553,7 @@ const verifyIn=document.getElementById("verifyIn");
 const verifyBtn=document.getElementById("verifyBtn");
 const verifyOut=document.getElementById("verifyOut");
 
+// training stats
 const trainingStatsCard=document.getElementById("trainingStatsCard");
 const tNOut=document.getElementById("tNOut");
 const tTimeTop=document.getElementById("tTimeTop");
@@ -562,17 +563,21 @@ const tBestOut=document.getElementById("tBestOut");
 const tWorstOut=document.getElementById("tWorstOut");
 const tResetBtn=document.getElementById("tResetBtn");
 
+// quiz session card (always)
+const quizSessionCard=document.getElementById("quizSessionCard");
+const qsStreakOut=document.getElementById("qsStreakOut");
+const qsBestStreakOut=document.getElementById("qsBestStreakOut");
+const qsSessionOut=document.getElementById("qsSessionOut");
+const qsErrOut=document.getElementById("qsErrOut");
+
+// quiz stats card (only stats ON)
 const quizStatsCard=document.getElementById("quizStatsCard");
-const qTopLeft=document.getElementById("qTopLeft");
 const qTimeTop=document.getElementById("qTimeTop");
-const qStreakOut=document.getElementById("qStreakOut");
-const qBestStreakOut=document.getElementById("qBestStreakOut");
-const qSessionOut=document.getElementById("qSessionOut");
-const qErrCountOut=document.getElementById("qErrCountOut");
 const qAvgOut=document.getElementById("qAvgOut");
 const qMedOut=document.getElementById("qMedOut");
 const qBestOut=document.getElementById("qBestOut");
 const qWorstOut=document.getElementById("qWorstOut");
+const qErrLogOut=document.getElementById("qErrLogOut");
 const qResetBtn=document.getElementById("qResetBtn");
 
 const bottomBar=document.getElementById("bottomBar");
@@ -583,6 +588,7 @@ const bottomBtn=document.getElementById("bottomBtn");
 =========================== */
 let mode = "training";           // training | quiz | verify
 let cur = null;
+
 let revealed = false;            // training only
 let quizLocked = false;          // quiz answered
 
@@ -593,12 +599,18 @@ let tTimes = loadArr(LS_TRAIN_TIMES).filter(Number.isFinite);
 let tStatsOn = loadBool(LS_TRAIN_STATS_ON, false);
 let tPendingStart = false;
 
-// Quiz stats
-let qProg = loadQuizProg();
-let qTimes = loadArr(LS_QUIZ_TIMES).filter(Number.isFinite);
-let qErrMap = loadErrMap();
+// Quiz session (volatile, reset on refresh)
+let qsAttempts = 0;
+let qsCorrect = 0;
+let qsErrors = 0;
+let qsStreak = 0;
+let qsBestStreak = 0;
+
+// Quiz persistent stats
 let qStatsOn = loadBool(LS_QUIZ_STATS_ON, false);
 let qPendingStart = false;
+let qTimesCorrect = loadArr(LS_QUIZ_TIMES_CORR).filter(Number.isFinite);
+let qErrMap = loadErrMap();
 let lastErrKey = null;
 
 // Timers (live)
@@ -622,7 +634,119 @@ function startLiveTimer(targetEl){
 }
 
 /* ===========================
-   Setup UI builders
+   UI helpers
+=========================== */
+function clearResultColor(){
+  mainCard.classList.remove("mainOk","mainBad");
+}
+
+function refreshSessionUI(){
+  if(mode !== "quiz"){
+    quizSessionCard.style.display = "none";
+    return;
+  }
+  quizSessionCard.style.display = "block";
+  qsStreakOut.textContent = qsStreak;
+  qsBestStreakOut.textContent = qsBestStreak;
+  qsSessionOut.textContent = `${qsCorrect}/${qsAttempts}`;
+  qsErrOut.textContent = qsErrors;
+}
+
+function updateTrainingStatsUI(){
+  if(!(mode==="training" && tStatsOn)){
+    trainingStatsCard.style.display = "none";
+    return;
+  }
+  trainingStatsCard.style.display = "block";
+
+  const n=tTimes.length;
+  tNOut.textContent = n;
+
+  tAvgOut.textContent = fmtSec(mean(tTimes));
+  tMedOut.textContent = fmtSec(median(tTimes));
+  tBestOut.textContent = n ? fmtSec(Math.min(...tTimes)) : "—";
+  tWorstOut.textContent = n ? fmtSec(Math.max(...tTimes)) : "—";
+
+  if(!tStart){
+    const last = n ? tTimes[n-1] : NaN;
+    tTimeTop.textContent = n ? (fmtSec(last)+" s") : "—";
+  }
+}
+
+function updateQuizStatsUI(){
+  if(!(mode==="quiz" && qStatsOn)){
+    quizStatsCard.style.display = "none";
+    return;
+  }
+  quizStatsCard.style.display = "block";
+
+  const n=qTimesCorrect.length;
+  qAvgOut.textContent = fmtSec(mean(qTimesCorrect));
+  qMedOut.textContent = fmtSec(median(qTimesCorrect));
+  qBestOut.textContent = n ? fmtSec(Math.min(...qTimesCorrect)) : "—";
+  qWorstOut.textContent = n ? fmtSec(Math.max(...qTimesCorrect)) : "—";
+
+  const errLogN = Object.keys(qErrMap).length;
+  qErrLogOut.textContent = errLogN;
+
+  if(!tStart){
+    const last = n ? qTimesCorrect[n-1] : NaN;
+    qTimeTop.textContent = n ? (fmtSec(last)+" s") : "—";
+  }
+}
+
+function refreshCounts(){
+  const sc = document.getElementById("savedCount");
+  if(sc) sc.textContent = saved.length;
+
+  const ec = document.getElementById("errCount");
+  if(ec) ec.textContent = Object.keys(qErrMap).length;
+
+  if(mode==="training"){
+    setupClearBtn.style.display = (getTrainingSrc()==="saved" && saved.length>0) ? "inline-block" : "none";
+  }
+  if(mode==="quiz"){
+    setupClearBtn.style.display = (getQuizSrc()==="errors" && Object.keys(qErrMap).length>0) ? "inline-block" : "none";
+  }
+}
+
+function setBottom(){
+  if(mode==="verify"){
+    bottomBar.style.display = "none";
+    return;
+  }
+
+  if(!cur){
+    bottomBar.style.display = "flex";
+    bottomBtn.disabled = true;
+    bottomBtn.textContent = "—";
+    bottomBtn.className = "";
+    return;
+  }
+
+  if(mode==="training"){
+    bottomBar.style.display = "flex";
+    bottomBtn.disabled = false;
+    bottomBtn.textContent = revealed ? "Nuova data" : "Mostra";
+    bottomBtn.className = revealed ? "bottomNext" : "";
+    return;
+  }
+
+  if(mode==="quiz"){
+    // bottom bar = solo Skip e solo prima di rispondere
+    if(quizLocked){
+      bottomBar.style.display = "none";
+      return;
+    }
+    bottomBar.style.display = "flex";
+    bottomBtn.disabled = false;
+    bottomBtn.textContent = "Skip";
+    bottomBtn.className = "";
+  }
+}
+
+/* ===========================
+   Setup / pickers
 =========================== */
 function buildSetupRadios(){
   setupRadios.innerHTML = "";
@@ -650,7 +774,6 @@ function buildSetupRadios(){
       lab.appendChild(sp);
       lab.appendChild(document.createTextNode(")"));
     }
-
     return {lab, inp};
   };
 
@@ -664,7 +787,6 @@ function buildSetupRadios(){
 
     setupClearBtn.textContent = "Svuota salvate";
     setupClearBtn.onclick = clearSaved;
-    setupClearBtn.style.display = (getTrainingSrc()==="saved" && saved.length>0) ? "inline-block" : "none";
   }
 
   if(mode === "quiz"){
@@ -677,7 +799,6 @@ function buildSetupRadios(){
 
     setupClearBtn.textContent = "Svuota errori";
     setupClearBtn.onclick = clearErrors;
-    setupClearBtn.style.display = (getQuizSrc()==="errors" && Object.keys(qErrMap).length>0) ? "inline-block" : "none";
   }
 
   if(mode === "verify"){
@@ -695,21 +816,6 @@ function buildSetupRadios(){
   refreshCounts();
 }
 
-function refreshCounts(){
-  const sc = document.getElementById("savedCount");
-  if(sc) sc.textContent = saved.length;
-
-  const ec = document.getElementById("errCount");
-  if(ec) ec.textContent = Object.keys(qErrMap).length;
-
-  if(mode==="training"){
-    setupClearBtn.style.display = (getTrainingSrc()==="saved" && saved.length>0) ? "inline-block" : "none";
-  }
-  if(mode==="quiz"){
-    setupClearBtn.style.display = (getQuizSrc()==="errors" && Object.keys(qErrMap).length>0) ? "inline-block" : "none";
-  }
-}
-
 function getTrainingSrc(){
   const sel = document.querySelector('input[name="srcMode"]:checked');
   return sel ? sel.value : "range";
@@ -717,10 +823,6 @@ function getTrainingSrc(){
 function getQuizSrc(){
   const sel = document.querySelector('input[name="quizSrc"]:checked');
   return sel ? sel.value : "range";
-}
-
-function syncSetupEnabled(){
-  document.getElementById("setupCard").style.display = (mode==="verify") ? "none" : "block";
 }
 
 function applyMode1900(){
@@ -768,58 +870,7 @@ function isSavedDate(y,m,d){
 }
 
 /* ===========================
-   Stats UI
-=========================== */
-function updateTrainingStatsUI(){
-  if(!(mode==="training" && tStatsOn)){
-    trainingStatsCard.style.display = "none";
-    return;
-  }
-  trainingStatsCard.style.display = "block";
-
-  const n=tTimes.length;
-  tNOut.textContent = n;
-
-  tAvgOut.textContent = fmtSec(mean(tTimes));
-  tMedOut.textContent = fmtSec(median(tTimes));
-  tBestOut.textContent = n ? fmtSec(Math.min(...tTimes)) : "—";
-  tWorstOut.textContent = n ? fmtSec(Math.max(...tTimes)) : "—";
-
-  if(!tStart){
-    const last = n ? tTimes[n-1] : NaN;
-    tTimeTop.textContent = n ? (fmtSec(last)+" s") : "—";
-  }
-}
-
-function updateQuizStatsUI(){
-  if(!(mode==="quiz" && qStatsOn)){
-    quizStatsCard.style.display = "none";
-    return;
-  }
-  quizStatsCard.style.display = "block";
-
-  qTopLeft.innerHTML = "&nbsp;"; // no OK x/y
-
-  const errN = Object.keys(qErrMap).length;
-  qStreakOut.textContent = qProg.streak;
-  qBestStreakOut.textContent = qProg.bestStreak;
-  qSessionOut.textContent = `${qProg.ok}/${qProg.n}`;
-  qErrCountOut.textContent = errN;
-
-  const n=qTimes.length;
-  qAvgOut.textContent = fmtSec(mean(qTimes));
-  qMedOut.textContent = fmtSec(median(qTimes));
-  qBestOut.textContent = n ? fmtSec(Math.min(...qTimes)) : "—";
-  qWorstOut.textContent = n ? fmtSec(Math.max(...qTimes)) : "—";
-
-  if(!tStart){
-    const last = n ? qTimes[n-1] : NaN;
-    qTimeTop.textContent = n ? (fmtSec(last)+" s") : "—";
-  }
-}
-
-/* ===========================
-   Mode switch
+   Modes
 =========================== */
 function setMode(newMode){
   mode = newMode;
@@ -834,11 +885,11 @@ function setMode(newMode){
 
   statsToggleLabel.style.display = (mode==="verify") ? "none" : "flex";
 
-  // bottom bar:
-  // - hidden in Verify
-  // - in Quiz it will be shown ONLY when answering (skip)
-  // - in Training normal
-  bottomBar.style.display = (mode==="verify") ? "none" : "flex";
+  // Setup visible only if not verify
+  document.getElementById("setupCard").style.display = (mode==="verify") ? "none" : "block";
+
+  // Date line: hidden in verify (riduce spazio morto)
+  dateOut.classList.toggle("dateHidden", mode==="verify");
 
   clearResultColor();
   quizMsg.textContent = "";
@@ -849,7 +900,6 @@ function setMode(newMode){
   // quiz UI pieces
   quizGrid.style.display = "grid";
   quizNextWrap.style.display = "none";
-  setQuizButtonsEnabled(true);
 
   revealed = false;
   quizLocked = false;
@@ -857,23 +907,20 @@ function setMode(newMode){
   stopLiveTimer();
   tStart = null;
 
-  if(mode==="training"){
-    statsToggle.checked = tStatsOn;
-  }else if(mode==="quiz"){
-    statsToggle.checked = qStatsOn;
-  }
+  if(mode==="training") statsToggle.checked = tStatsOn;
+  if(mode==="quiz") statsToggle.checked = qStatsOn;
 
   buildSetupRadios();
-  syncSetupEnabled();
 
+  refreshSessionUI();
   updateTrainingStatsUI();
   updateQuizStatsUI();
 
   if(mode==="verify"){
     cur = null;
-    dateOut.textContent = "";
     verifyIn.value = "";
     verifyOut.textContent = "";
+    setBottom();
     setTimeout(()=>verifyIn.focus(), 0);
     return;
   }
@@ -882,34 +929,8 @@ function setMode(newMode){
 }
 
 /* ===========================
-   Bottom button behavior
+   Bottom action
 =========================== */
-function setBottom(){
-  // default
-  bottomBtn.disabled = !cur;
-
-  if(!cur) return;
-
-  if(mode==="training"){
-    bottomBar.style.display = "flex";
-    bottomBtn.textContent = revealed ? "Nuova data" : "Mostra";
-    bottomBtn.className = revealed ? "bottomNext" : "";
-    return;
-  }
-
-  if(mode==="quiz"){
-    // IN QUIZ: bottom bar = solo Skip, solo prima di rispondere
-    if(quizLocked){
-      bottomBar.style.display = "none";
-      return;
-    }
-    bottomBar.style.display = "flex";
-    bottomBtn.textContent = "Skip";
-    bottomBtn.className = "";
-    return;
-  }
-}
-
 function bottomAction(){
   if(!cur) return;
 
@@ -920,9 +941,8 @@ function bottomAction(){
   }
 
   if(mode==="quiz"){
-    // skip => nuova data
+    // skip
     newDate();
-    return;
   }
 }
 
@@ -994,16 +1014,14 @@ function buildQuizButtons(){
     return b;
   };
 
-  // Domenica top, spanning 2 cols
-  quizGrid.appendChild(makeBtn(0, "dom"));
+  quizGrid.appendChild(makeBtn(0, "dom")); // Domenica (2 col)
 
-  // pairs
-  quizGrid.appendChild(makeBtn(1)); // Lun
-  quizGrid.appendChild(makeBtn(2)); // Mar
-  quizGrid.appendChild(makeBtn(3)); // Mer
-  quizGrid.appendChild(makeBtn(4)); // Gio
-  quizGrid.appendChild(makeBtn(5)); // Ven
-  quizGrid.appendChild(makeBtn(6)); // Sab
+  quizGrid.appendChild(makeBtn(1));
+  quizGrid.appendChild(makeBtn(2));
+  quizGrid.appendChild(makeBtn(3));
+  quizGrid.appendChild(makeBtn(4));
+  quizGrid.appendChild(makeBtn(5));
+  quizGrid.appendChild(makeBtn(6));
 }
 
 function setQuizButtonsEnabled(on){
@@ -1025,7 +1043,29 @@ function clearErrors(){
   newDate();
 }
 
+function resetQuizStats(){
+  // Reset SOLO stats persistenti (non tocca streak/sessione)
+  if(!confirm("Reset statistiche quiz? (tempi + errori log)")) return;
+
+  qTimesCorrect = [];
+  saveArr(LS_QUIZ_TIMES_CORR, qTimesCorrect, 5000);
+
+  qErrMap = {};
+  saveErrMap(qErrMap);
+
+  refreshCounts();
+
+  // timer: stop e riparti solo alla prossima azione
+  stopLiveTimer();
+  tStart = null;
+  qPendingStart = true;
+
+  updateQuizStatsUI();
+  setBottom();
+}
+
 function updateErrorMapAfterAnswer(ok){
+  // confermato: errori persistenti SOLO con stats ON
   if(!qStatsOn) return;
 
   const k = keyOf(cur.y,cur.m,cur.d);
@@ -1057,24 +1097,29 @@ function quizAnswer(chosenIdx){
   const correctIdx = weekday(cur.y,cur.m,cur.d);
   const ok = (chosenIdx === correctIdx);
 
-  qProg.n += 1;
+  // SESSION always-on
+  qsAttempts += 1;
   if(ok){
-    qProg.ok += 1;
-    qProg.streak += 1;
-    if(qProg.streak > qProg.bestStreak) qProg.bestStreak = qProg.streak;
+    qsCorrect += 1;
+    qsStreak += 1;
+    if(qsStreak > qsBestStreak) qsBestStreak = qsStreak;
   }else{
-    qProg.streak = 0;
+    qsErrors += 1;
+    qsStreak = 0;
   }
-  saveQuizProg(qProg);
+  refreshSessionUI();
 
-  if(qStatsOn && tStart){
+  // Persistent stats: time only if stats ON + correct
+  if(qStatsOn && ok && tStart){
     const elapsed=(performance.now()-tStart)/1000;
-    qTimes.push(elapsed);
-    saveArr(LS_QUIZ_TIMES, qTimes, 5000);
+    qTimesCorrect.push(elapsed);
+    saveArr(LS_QUIZ_TIMES_CORR, qTimesCorrect, 5000);
   }
 
+  // Persistent error map: only if stats ON (already)
   updateErrorMapAfterAnswer(ok);
 
+  // stop timer
   tStart=null;
   stopLiveTimer();
 
@@ -1099,12 +1144,8 @@ function quizAnswer(chosenIdx){
 }
 
 /* ===========================
-   Common: new date
+   new date
 =========================== */
-function clearResultColor(){
-  mainCard.classList.remove("mainOk","mainBad");
-}
-
 function newDate(){
   clearResultColor();
 
@@ -1146,8 +1187,10 @@ function newDate(){
   revealed = false;
   quizLocked = false;
 
-  dateOut.textContent = fmtDate(cur.d,cur.m,cur.y);
+  // show date according to format setting
+  dateOut.textContent = fmtNum.checked ? fmtDate(cur.d,cur.m,cur.y) : fmtDateHuman(cur.d,cur.m,cur.y);
 
+  // clear outputs
   answerOut.textContent = "";
   quizMsg.textContent = "";
   verifyOut.textContent = "";
@@ -1160,6 +1203,7 @@ function newDate(){
     setQuizButtonsEnabled(true);
   }
 
+  // timer rules
   stopLiveTimer();
   tStart = null;
 
@@ -1227,10 +1271,17 @@ function doVerify(){
   }
   const w = weekday(p.y,p.m,p.d);
   const leap = isLeap(p.y);
-  verifyOut.innerHTML = `${giorni[w]}<div class="leapNote">${leap ? "bisestile" : "non bisestile"}</div>`;
+
+  const dd = String(p.d).padStart(2,"0");
+  const mm = String(p.m).padStart(2,"0");
+  const yyyy = String(p.y);
+
+  verifyOut.innerHTML =
+    `${dd}/${mm}/${yyyy} — ${giorni[w]}` +
+    `<div class="leapNote">${leap ? "bisestile" : "non bisestile"}</div>`;
 }
 
-// FIX robusto autoformat: ricostruisce sempre da cifre
+// robust autoformat from digits
 function verifyAutoFormat(){
   const digits = (verifyIn.value || "").replace(/\D/g,"").slice(0,8);
   let out = "";
@@ -1243,7 +1294,6 @@ function verifyAutoFormat(){
     out = digits.slice(0,2) + "/" + digits.slice(2,4) + "/" + digits.slice(4);
   }
 
-  // evita loop inutili
   if(verifyIn.value !== out){
     verifyIn.value = out;
   }
@@ -1261,8 +1311,8 @@ function onStatsToggleChanged(){
 
     stopLiveTimer();
     tStart = null;
-
     tPendingStart = tStatsOn ? true : false; // parte dalla prossima data
+
     updateTrainingStatsUI();
     setBottom();
     return;
@@ -1276,8 +1326,9 @@ function onStatsToggleChanged(){
 
     stopLiveTimer();
     tStart = null;
-
     qPendingStart = qStatsOn ? true : false; // parte dalla prossima data
+
+    refreshCounts();
     updateQuizStatsUI();
     setBottom();
     return;
@@ -1294,7 +1345,11 @@ tabVerify.addEventListener("click", ()=>setMode("verify"));
 statsToggle.addEventListener("change", onStatsToggleChanged);
 
 mode1900.addEventListener("change", ()=>{ applyMode1900(); if(mode!=="verify") newDate(); });
-fmtNum.addEventListener("change", ()=>{ if(cur) dateOut.textContent = fmtDate(cur.d,cur.m,cur.y); });
+fmtNum.addEventListener("change", ()=>{
+  if(cur && mode!=="verify"){
+    dateOut.textContent = fmtNum.checked ? fmtDate(cur.d,cur.m,cur.y) : fmtDateHuman(cur.d,cur.m,cur.y);
+  }
+});
 
 bottomBtn.addEventListener("click", bottomAction);
 
@@ -1311,18 +1366,7 @@ tResetBtn.addEventListener("click", ()=>{
   updateTrainingStatsUI();
 });
 
-qResetBtn.addEventListener("click", ()=>{
-  if(!confirm("Reset quiz? (progressi, tempi, errori)")) return;
-  qProg = {n:0, ok:0, streak:0, bestStreak:0};
-  qTimes = [];
-  qErrMap = {};
-  saveQuizProg(qProg);
-  saveArr(LS_QUIZ_TIMES, qTimes, 5000);
-  saveErrMap(qErrMap);
-  refreshCounts();
-  updateQuizStatsUI();
-  newDate();
-});
+qResetBtn.addEventListener("click", resetQuizStats);
 
 verifyBtn.addEventListener("click", doVerify);
 verifyIn.addEventListener("keydown", (e)=>{ if(e.key==="Enter") doVerify(); });
