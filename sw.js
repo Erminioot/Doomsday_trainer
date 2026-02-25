@@ -1,4 +1,4 @@
-const CACHE = "doomsday-cache-v8";
+const CACHE = "doomsday-cache-v9";
 const ASSETS = [
   "./",
   "./index.html",
