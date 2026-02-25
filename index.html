@@ -9,9 +9,7 @@
   <meta name="theme-color" content="#ffffff">
 
   <style>
-    :root{
-      --bottomBarPad: 140px; /* spazio per bottom bar fixed */
-    }
+    :root{ --bottomBarPad: 140px; }
 
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -20,281 +18,164 @@
       padding-bottom: var(--bottomBarPad);
     }
 
-    .tabs{
-      display:flex;
-      gap:10px;
-      margin:0 0 10px;
-    }
+    .tabs{ display:flex; gap:10px; margin:0 0 10px; }
     .tabBtn{
-      font-size:16px;
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid #bbb;
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
+      font-size:16px; padding:10px 12px; border-radius:10px;
+      border:1px solid #bbb; background:#fff; font-weight:900; cursor:pointer;
     }
-    .tabBtn.active{
-      background:#111;
-      color:#fff;
-      border-color:#111;
-    }
+    .tabBtn.active{ background:#111; color:#fff; border-color:#111; }
 
-    .topLine{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin:0 2px 8px;
-    }
+    .topLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 2px 8px; }
     .topLine .spacer{flex:1;}
-    .topLine label{
-      font-size:14px;
-      font-weight:900;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-    }
-    input[type="checkbox"],input[type="radio"]{transform:scale(1.15);}
+    .topLine label{ font-size:14px; font-weight:900; display:flex; align-items:center; gap:8px; white-space:nowrap; }
+    input[type="checkbox"],input[type="radio"]{ transform:scale(1.15); }
 
-    .card{
-      border:1px solid #ddd;
-      border-radius:14px;
-      padding:14px;
-      margin:10px 0;
-      background:#fff;
-    }
+    .card{ border:1px solid #ddd; border-radius:14px; padding:14px; margin:10px 0; background:#fff; }
 
-    /* Setup box */
-    .setupTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .setupLeft{
-      display:flex;
-      align-items:center;
-      gap:18px;
-      flex-wrap:wrap;
-    }
+    .setupTop{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .setupLeft{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+
     .btnSmall{
-      font-size:16px;
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid #bbb;
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
+      font-size:16px; padding:10px 12px; border-radius:10px;
+      border:1px solid #bbb; background:#fff; font-weight:900; cursor:pointer;
     }
-    .btnSmall:disabled{opacity:.45;cursor:not-allowed;}
+    .btnSmall:disabled{ opacity:.45; cursor:not-allowed; }
 
     .rangeGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-      align-items:center;
-      margin-top:10px;
+      display:grid; grid-template-columns: 1fr 1fr; gap:14px;
+      align-items:center; margin-top:10px;
     }
-    label.inline{
-      font-size:14px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-weight:700;
-    }
+    label.inline{ font-size:14px; display:flex; align-items:center; gap:8px; font-weight:700; }
     input[type="number"]{
-      font-size:18px;
-      padding:10px;
-      border-radius:10px;
-      border:1px solid #ccc;
-      width:120px;
+      font-size:18px; padding:10px; border-radius:10px;
+      border:1px solid #ccc; width:120px;
     }
+    .rowToggles{ display:flex; align-items:center; gap:18px; margin-top:8px; flex-wrap:wrap; }
 
-    .rowToggles{
-      display:flex;
-      align-items:center;
-      gap:18px;
-      margin-top:8px;
-      flex-wrap:wrap;
-    }
-
-    /* Main (date + answer/quiz) */
-    .mainCard{transition:background-color .12s ease;}
-    .mainOk{background:#d8f9c9;}
-    .mainBad{background:#ffd0d0;}
+    .mainCard{ transition:background-color .12s ease; }
+    .mainOk{ background:#d8f9c9; }
+    .mainBad{ background:#ffd0d0; }
 
     .date{
-      font-size:44px;
-      font-weight:900;
-      text-align:center;
-      margin:14px 0 10px;
-      min-height:52px;
+      font-size:44px; font-weight:900; text-align:center;
+      margin:14px 0 10px; min-height:52px;
     }
     .dateHidden{ display:none; }
 
     .answer{
-      font-size:30px;
-      font-weight:900;
-      text-align:center;
-      margin:8px 0 6px;
-      line-height:1.1;
+      font-size:30px; font-weight:900; text-align:center;
+      margin:8px 0 6px; line-height:1.1;
     }
-    .leapNote{
-      font-size:16px;
-      font-style:italic;
-      font-weight:600;
-      margin-top:6px;
-      color:#333;
-    }
-    .saveWrap{
-      display:flex;
-      justify-content:center;
-      margin-top:10px;
-    }
+    .leapNote{ font-size:16px; font-style:italic; font-weight:600; margin-top:6px; color:#333; }
+    .saveWrap{ display:flex; justify-content:center; margin-top:10px; }
 
-    /* Quiz layout: Domenica (2 col), poi coppie */
-    #quizBlock{display:none;}
+    /* Quiz */
+    #quizBlock{ display:none; }
     .quizGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px 12px;
-      margin:12px auto 6px;
-      max-width:560px;
+      display:grid; grid-template-columns: 1fr 1fr;
+      gap:12px 12px; margin:12px auto 6px; max-width:560px;
     }
     .quizBtn{
-      font-size:18px;
-      padding:14px 10px;
-      border-radius:12px;
-      border:1px solid #bbb;
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
-      min-width:0;
+      font-size:18px; padding:14px 10px; border-radius:12px;
+      border:1px solid #bbb; background:#fff; font-weight:900; cursor:pointer; min-width:0;
     }
-    .quizBtn:disabled{opacity:.45;cursor:not-allowed;}
+    .quizBtn:disabled{ opacity:.45; cursor:not-allowed; }
     .quizBtn.dom{ grid-column:1 / span 2; }
 
-    .quizMsg{
-      text-align:center;
-      font-size:44px;
-      font-weight:900;
-      margin:14px 0 8px;
-    }
-    .quizNextWrap{
-      display:none;
-      justify-content:center;
-      margin-top:12px;
-    }
+    .quizMsg{ text-align:center; font-size:44px; font-weight:900; margin:14px 0 8px; }
+
+    .quizNextWrap{ display:none; justify-content:center; margin-top:12px; }
     .quizNextBtn{
-      width:92%;
-      max-width:560px;
-      font-size:26px;
-      padding:20px 16px;
-      border-radius:14px;
-      border:1px solid #bbb;
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
+      width:92%; max-width:560px; font-size:26px; padding:20px 16px;
+      border-radius:14px; border:1px solid #bbb; background:#fff; font-weight:900; cursor:pointer;
     }
 
     /* Stats cards */
-    .statsTopRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .statsTopLeft{
-      font-size:16px;
-      font-weight:900;
-      white-space:nowrap;
-      min-width:90px;
-    }
+    .statsTopRow{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .statsTopLeft{ font-size:16px; font-weight:900; white-space:nowrap; min-width:90px; }
     .statsTopMid{
-      flex:1;
-      text-align:center;
-      font-size:24px;
-      font-weight:900;
-      text-decoration:underline;
-      white-space:nowrap;
+      flex:1; text-align:center; font-size:24px; font-weight:900;
+      text-decoration:underline; white-space:nowrap;
     }
     .statsBox{
-      border:1px solid #ddd;
-      border-radius:12px;
-      padding:12px 14px;
-      margin-top:12px;
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border:1px solid #ddd; border-radius:12px; padding:12px 14px;
+      margin-top:12px; display:grid; grid-template-columns: repeat(2, minmax(0, 1fr));
       gap:10px 18px;
     }
-    .statRow{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      font-size:16px;
-    }
+    .statRow{ display:flex; justify-content:space-between; gap:10px; font-size:16px; }
 
     #trainingStatsCard{display:none;}
     #quizSessionCard{display:none;}
     #quizStatsCard{display:none;}
 
-    /* Verify */
-    #verifyBlock{display:none;}
-    .verifyRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      justify-content:center;
+    /* Error log UI */
+    details.errDetails{ margin-top:12px; }
+    details.errDetails summary{
+      cursor:pointer;
+      font-weight:900;
+      list-style:none;
+    }
+    details.errDetails summary::-webkit-details-marker{ display:none; }
+    .errPanel{
       margin-top:10px;
+      border:1px solid #ddd;
+      border-radius:12px;
+      padding:10px 12px;
+    }
+    .errPanelTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .errList{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size:14px;
+      line-height:1.25;
+    }
+    .errItem{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px dashed #e6e6e6;
+      padding-bottom:6px;
+    }
+    .errItem:last-child{ border-bottom:none; padding-bottom:0; }
+    .errLeft{ font-weight:800; }
+    .errRight{ white-space:nowrap; font-weight:800; }
+
+    /* Verify */
+    #verifyBlock{ display:none; }
+    .verifyRow{
+      display:flex; gap:10px; align-items:center;
+      flex-wrap:wrap; justify-content:center; margin-top:10px;
     }
     .verifyRow input{
-      font-size:20px;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid #ccc;
-      width:220px;
-      text-align:center;
+      font-size:20px; padding:12px 12px; border-radius:12px;
+      border:1px solid #ccc; width:220px; text-align:center;
     }
     .verifyOut{
-      text-align:center;
-      margin-top:12px;
-      font-size:26px;
-      font-weight:900;
-      line-height:1.2;
+      text-align:center; margin-top:12px;
+      font-size:26px; font-weight:900; line-height:1.2;
     }
 
     /* Bottom bar */
     .bottomBar{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      background:#fff;
-      padding:10px;
-      display:flex;
-      justify-content:center;
-      z-index:999;
-      border-top:1px solid #eee;
+      position:fixed; left:0; right:0; bottom:0;
+      background:#fff; padding:10px; display:flex; justify-content:center;
+      z-index:999; border-top:1px solid #eee;
       padding-bottom: calc(10px + env(safe-area-inset-bottom));
     }
     .bottomBar button{
-      font-size:22px;
-      padding:22px 22px;
-      width:92%;
-      max-width:520px;
-      border-radius:16px;
-      border:1px solid #bbb;
-      background:#fff;
-      cursor:pointer;
-      font-weight:900;
+      font-size:22px; padding:22px 22px; width:92%; max-width:520px;
+      border-radius:16px; border:1px solid #bbb; background:#fff;
+      cursor:pointer; font-weight:900;
     }
-    .bottomBar button:disabled{opacity:.45;cursor:not-allowed;}
-    .bottomNext{
-      background:#eaf7ea;
-      border-color:#1f7a1f;
-    }
+    .bottomBar button:disabled{ opacity:.45; cursor:not-allowed; }
+    .bottomNext{ background:#eaf7ea; border-color:#1f7a1f; }
   </style>
 </head>
 
@@ -373,7 +254,7 @@
     </div>
   </div>
 
-  <!-- Quiz session (always on in Quiz) -->
+  <!-- Quiz session (always in Quiz) -->
   <div class="card" id="quizSessionCard">
     <div class="statsBox" style="margin-top:0;">
       <div class="statRow"><span>Streak</span><strong id="qsStreakOut">0</strong></div>
@@ -390,15 +271,27 @@
       <div class="statsTopMid" id="qTimeTop">—</div>
       <button id="qResetBtn" class="btnSmall">Reset</button>
     </div>
+
     <div class="statsBox">
+      <div class="statRow"><span>Entries</span><strong id="qEntriesOut">0</strong></div>
+      <div class="statRow"><span>Errori (log)</span><strong id="qErrLogOut">0</strong></div>
+
       <div class="statRow"><span>Media</span><strong id="qAvgOut">—</strong></div>
       <div class="statRow"><span>Mediana</span><strong id="qMedOut">—</strong></div>
       <div class="statRow"><span>Migliore</span><strong id="qBestOut">—</strong></div>
       <div class="statRow"><span>Peggiore</span><strong id="qWorstOut">—</strong></div>
-
-      <div class="statRow"><span>Errori (log)</span><strong id="qErrLogOut">0</strong></div>
-      <div class="statRow"><span>&nbsp;</span><strong>&nbsp;</strong></div>
     </div>
+
+    <details class="errDetails" id="qErrDetails">
+      <summary id="qErrSummary">Errori recenti (0)</summary>
+      <div class="errPanel">
+        <div class="errPanelTop">
+          <div style="font-weight:900;">Ultimi 20</div>
+          <button id="qErrClearBtn" class="btnSmall" style="padding:8px 10px;font-size:14px;">Svuota log</button>
+        </div>
+        <div class="errList" id="qErrList"></div>
+      </div>
+    </details>
   </div>
 
   <div class="bottomBar" id="bottomBar">
@@ -425,13 +318,8 @@ function weekday(y,m,d){
   return [6,0,1,2,3,4,5][h];
 }
 
-function fmtDate(d,m,y){
-  return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y;
-}
-function fmtDateHuman(d,m,y){
-  return d+" "+mesi[m-1]+" "+y;
-}
-
+function fmtDate(d,m,y){ return String(d).padStart(2,"0")+"/"+String(m).padStart(2,"0")+"/"+y; }
+function fmtDateHuman(d,m,y){ return d+" "+mesi[m-1]+" "+y; }
 function fmtSec(x){ return Number.isFinite(x) ? x.toFixed(2) : "—"; }
 function mean(arr){ return arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : NaN; }
 function median(arr){
@@ -440,6 +328,7 @@ function median(arr){
   const mid=Math.floor(a.length/2);
   return (a.length%2) ? a[mid] : (a[mid-1]+a[mid])/2;
 }
+function keyOf(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
 
 /* ===========================
    Storage keys
@@ -449,16 +338,16 @@ const LS_SAVED = "doomsday_saved_v1";
 const LS_TRAIN_TIMES = "doomsday_training_times_v2";
 const LS_TRAIN_STATS_ON = "doomsday_training_stats_on_v2";
 
-// Quiz persistent stats (correct-only times) + errors map
 const LS_QUIZ_TIMES_CORR = "doomsday_quiz_times_correct_v3";
 const LS_QUIZ_ERRORS = "doomsday_quiz_errors_v2";
 const LS_QUIZ_STATS_ON = "doomsday_quiz_stats_on_v2";
 
-/* ===========================
-   Load / Save
-=========================== */
-function keyOf(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+// NEW: error log (last 20), only when stats ON, only wrong answers
+const LS_QUIZ_ERROR_LOG = "doomsday_quiz_error_log_v1";
 
+/* ===========================
+   Load / Save utils
+=========================== */
 function loadArr(key){
   try{
     const raw=localStorage.getItem(key);
@@ -517,6 +406,18 @@ function saveErrMap(map){
   try{ localStorage.setItem(LS_QUIZ_ERRORS, JSON.stringify(map)); }catch(e){}
 }
 
+function loadErrorLog(){
+  try{
+    const raw=localStorage.getItem(LS_QUIZ_ERROR_LOG);
+    const arr=raw?JSON.parse(raw):[];
+    if(!Array.isArray(arr)) return [];
+    return arr.filter(x => x && typeof x==="object");
+  }catch(e){ return []; }
+}
+function saveErrorLog(arr){
+  try{ localStorage.setItem(LS_QUIZ_ERROR_LOG, JSON.stringify(arr)); }catch(e){}
+}
+
 /* ===========================
    DOM
 =========================== */
@@ -553,7 +454,6 @@ const verifyIn=document.getElementById("verifyIn");
 const verifyBtn=document.getElementById("verifyBtn");
 const verifyOut=document.getElementById("verifyOut");
 
-// training stats
 const trainingStatsCard=document.getElementById("trainingStatsCard");
 const tNOut=document.getElementById("tNOut");
 const tTimeTop=document.getElementById("tTimeTop");
@@ -563,22 +463,26 @@ const tBestOut=document.getElementById("tBestOut");
 const tWorstOut=document.getElementById("tWorstOut");
 const tResetBtn=document.getElementById("tResetBtn");
 
-// quiz session card (always)
 const quizSessionCard=document.getElementById("quizSessionCard");
 const qsStreakOut=document.getElementById("qsStreakOut");
 const qsBestStreakOut=document.getElementById("qsBestStreakOut");
 const qsSessionOut=document.getElementById("qsSessionOut");
 const qsErrOut=document.getElementById("qsErrOut");
 
-// quiz stats card (only stats ON)
 const quizStatsCard=document.getElementById("quizStatsCard");
 const qTimeTop=document.getElementById("qTimeTop");
+const qEntriesOut=document.getElementById("qEntriesOut");
+const qErrLogOut=document.getElementById("qErrLogOut");
 const qAvgOut=document.getElementById("qAvgOut");
 const qMedOut=document.getElementById("qMedOut");
 const qBestOut=document.getElementById("qBestOut");
 const qWorstOut=document.getElementById("qWorstOut");
-const qErrLogOut=document.getElementById("qErrLogOut");
 const qResetBtn=document.getElementById("qResetBtn");
+
+const qErrDetails=document.getElementById("qErrDetails");
+const qErrSummary=document.getElementById("qErrSummary");
+const qErrClearBtn=document.getElementById("qErrClearBtn");
+const qErrList=document.getElementById("qErrList");
 
 const bottomBar=document.getElementById("bottomBar");
 const bottomBtn=document.getElementById("bottomBtn");
@@ -586,11 +490,12 @@ const bottomBtn=document.getElementById("bottomBtn");
 /* ===========================
    State
 =========================== */
-let mode = "training";           // training | quiz | verify
+let mode = "training";      // training | quiz | verify
 let cur = null;
 
-let revealed = false;            // training only
-let quizLocked = false;          // quiz answered
+let revealed = false;       // training only
+let quizLocked = false;     // quiz answered
+let quizReady = false;      // quiz: stats ON => waiting for user to start
 
 let saved = loadSaved();
 
@@ -599,7 +504,7 @@ let tTimes = loadArr(LS_TRAIN_TIMES).filter(Number.isFinite);
 let tStatsOn = loadBool(LS_TRAIN_STATS_ON, false);
 let tPendingStart = false;
 
-// Quiz session (volatile, reset on refresh)
+// Quiz session volatile (reset at refresh)
 let qsAttempts = 0;
 let qsCorrect = 0;
 let qsErrors = 0;
@@ -611,9 +516,10 @@ let qStatsOn = loadBool(LS_QUIZ_STATS_ON, false);
 let qPendingStart = false;
 let qTimesCorrect = loadArr(LS_QUIZ_TIMES_CORR).filter(Number.isFinite);
 let qErrMap = loadErrMap();
+let qErrLog = loadErrorLog(); // newest last
 let lastErrKey = null;
 
-// Timers (live)
+// Timer
 let tStart = null;
 let timerInterval = null;
 
@@ -673,6 +579,46 @@ function updateTrainingStatsUI(){
   }
 }
 
+function renderErrorLogUI(){
+  if(!(mode==="quiz" && qStatsOn)){
+    return;
+  }
+  const n = qErrLog.length;
+  qErrSummary.textContent = `Errori recenti (${n})`;
+  qErrList.innerHTML = "";
+
+  // show newest first
+  const slice = qErrLog.slice().reverse().slice(0,20);
+  if(!slice.length){
+    const div=document.createElement("div");
+    div.textContent = "Nessun errore registrato.";
+    div.style.opacity = "0.7";
+    qErrList.appendChild(div);
+    return;
+  }
+
+  for(const e of slice){
+    const d = fmtDate(e.d, e.m, e.y);
+    const you = giorni[e.chosen];
+    const corr = giorni[e.correct];
+
+    const row=document.createElement("div");
+    row.className="errItem";
+
+    const left=document.createElement("div");
+    left.className="errLeft";
+    left.textContent = `${d} — ${you} → ${corr}`;
+
+    const right=document.createElement("div");
+    right.className="errRight";
+    right.textContent = `${fmtSec(e.t)} s`;
+
+    row.appendChild(left);
+    row.appendChild(right);
+    qErrList.appendChild(row);
+  }
+}
+
 function updateQuizStatsUI(){
   if(!(mode==="quiz" && qStatsOn)){
     quizStatsCard.style.display = "none";
@@ -680,21 +626,33 @@ function updateQuizStatsUI(){
   }
   quizStatsCard.style.display = "block";
 
-  const n=qTimesCorrect.length;
-  qAvgOut.textContent = fmtSec(mean(qTimesCorrect));
-  qMedOut.textContent = fmtSec(median(qTimesCorrect));
-  qBestOut.textContent = n ? fmtSec(Math.min(...qTimesCorrect)) : "—";
-  qWorstOut.textContent = n ? fmtSec(Math.max(...qTimesCorrect)) : "—";
+  const entries = qTimesCorrect.length;
+  qEntriesOut.textContent = entries;
 
   const errLogN = Object.keys(qErrMap).length;
   qErrLogOut.textContent = errLogN;
 
+  qAvgOut.textContent = fmtSec(mean(qTimesCorrect));
+  qMedOut.textContent = fmtSec(median(qTimesCorrect));
+  qBestOut.textContent = entries ? fmtSec(Math.min(...qTimesCorrect)) : "—";
+  qWorstOut.textContent = entries ? fmtSec(Math.max(...qTimesCorrect)) : "—";
+
   if(!tStart){
-    const last = n ? qTimesCorrect[n-1] : NaN;
-    qTimeTop.textContent = n ? (fmtSec(last)+" s") : "—";
+    const last = entries ? qTimesCorrect[entries-1] : NaN;
+    qTimeTop.textContent = entries ? (fmtSec(last)+" s") : "—";
   }
+
+  renderErrorLogUI();
 }
 
+function isSavedDate(y,m,d){
+  const k=keyOf(y,m,d);
+  return saved.some(x=>keyOf(x.y,x.m,x.d)===k);
+}
+
+/* ===========================
+   Setup / pickers
+=========================== */
 function refreshCounts(){
   const sc = document.getElementById("savedCount");
   if(sc) sc.textContent = saved.length;
@@ -710,44 +668,6 @@ function refreshCounts(){
   }
 }
 
-function setBottom(){
-  if(mode==="verify"){
-    bottomBar.style.display = "none";
-    return;
-  }
-
-  if(!cur){
-    bottomBar.style.display = "flex";
-    bottomBtn.disabled = true;
-    bottomBtn.textContent = "—";
-    bottomBtn.className = "";
-    return;
-  }
-
-  if(mode==="training"){
-    bottomBar.style.display = "flex";
-    bottomBtn.disabled = false;
-    bottomBtn.textContent = revealed ? "Nuova data" : "Mostra";
-    bottomBtn.className = revealed ? "bottomNext" : "";
-    return;
-  }
-
-  if(mode==="quiz"){
-    // bottom bar = solo Skip e solo prima di rispondere
-    if(quizLocked){
-      bottomBar.style.display = "none";
-      return;
-    }
-    bottomBar.style.display = "flex";
-    bottomBtn.disabled = false;
-    bottomBtn.textContent = "Skip";
-    bottomBtn.className = "";
-  }
-}
-
-/* ===========================
-   Setup / pickers
-=========================== */
 function buildSetupRadios(){
   setupRadios.innerHTML = "";
   setupClearBtn.style.display = "none";
@@ -809,7 +729,13 @@ function buildSetupRadios(){
   [...setupRadios.querySelectorAll("input[type=radio]")].forEach(inp=>{
     inp.addEventListener("change", ()=>{
       refreshCounts();
-      newDate();
+
+      // In quiz ready-state (stats ON), non generiamo date automaticamente.
+      if(mode==="quiz" && qStatsOn && quizReady){
+        setBottom();
+        return;
+      }
+      if(mode!=="verify") newDate();
     });
   });
 
@@ -864,13 +790,73 @@ function pickFromErrors(){
   return {y:e.y,m:e.m,d:e.d, _errKey:k};
 }
 
-function isSavedDate(y,m,d){
-  const k=keyOf(y,m,d);
-  return saved.some(x=>keyOf(x.y,x.m,x.d)===k);
+/* ===========================
+   Bottom button
+=========================== */
+function setBottom(){
+  if(mode==="verify"){
+    bottomBar.style.display = "none";
+    return;
+  }
+
+  bottomBar.style.display = "flex";
+
+  if(mode==="training"){
+    bottomBtn.disabled = !cur;
+    bottomBtn.textContent = cur ? (revealed ? "Nuova data" : "Mostra") : "—";
+    bottomBtn.className = (cur && revealed) ? "bottomNext" : "";
+    return;
+  }
+
+  if(mode==="quiz"){
+    // Quiz ready-state: allow Skip to start
+    if(qStatsOn && quizReady){
+      bottomBtn.disabled = false;
+      bottomBtn.textContent = "Skip";
+      bottomBtn.className = "";
+      return;
+    }
+
+    // Normal quiz: show skip only before answer; hide after answer
+    if(!cur){
+      bottomBtn.disabled = true;
+      bottomBtn.textContent = "—";
+      bottomBtn.className = "";
+      return;
+    }
+
+    if(quizLocked){
+      bottomBar.style.display = "none";
+      return;
+    }
+
+    bottomBtn.disabled = false;
+    bottomBtn.textContent = "Skip";
+    bottomBtn.className = "";
+  }
+}
+
+function bottomAction(){
+  if(mode==="training"){
+    if(!cur) return;
+    if(!revealed) revealTraining();
+    else newDate();
+    return;
+  }
+
+  if(mode==="quiz"){
+    // ready-state start OR regular skip
+    if(qStatsOn && quizReady){
+      startQuizSessionNow();
+      return;
+    }
+    if(!cur) return;
+    newDate();
+  }
 }
 
 /* ===========================
-   Modes
+   Mode switch
 =========================== */
 function setMode(newMode){
   mode = newMode;
@@ -884,11 +870,7 @@ function setMode(newMode){
   verifyBlock.style.display = (mode==="verify") ? "block" : "none";
 
   statsToggleLabel.style.display = (mode==="verify") ? "none" : "flex";
-
-  // Setup visible only if not verify
   document.getElementById("setupCard").style.display = (mode==="verify") ? "none" : "block";
-
-  // Date line: hidden in verify (riduce spazio morto)
   dateOut.classList.toggle("dateHidden", mode==="verify");
 
   clearResultColor();
@@ -897,7 +879,6 @@ function setMode(newMode){
   verifyOut.textContent = "";
   saveBtn.style.display = "none";
 
-  // quiz UI pieces
   quizGrid.style.display = "grid";
   quizNextWrap.style.display = "none";
 
@@ -918,6 +899,7 @@ function setMode(newMode){
 
   if(mode==="verify"){
     cur = null;
+    quizReady = false;
     verifyIn.value = "";
     verifyOut.textContent = "";
     setBottom();
@@ -925,25 +907,48 @@ function setMode(newMode){
     return;
   }
 
+  // QUIZ: se stats ON => READY (no data, no timer)
+  if(mode==="quiz" && qStatsOn){
+    setQuizReady();
+    return;
+  }
+
+  quizReady = false;
   newDate();
 }
 
 /* ===========================
-   Bottom action
+   Quiz ready-state
 =========================== */
-function bottomAction(){
-  if(!cur) return;
+function setQuizButtonsEnabled(on){
+  [...quizGrid.querySelectorAll("button")].forEach(b=>b.disabled=!on);
+}
 
-  if(mode==="training"){
-    if(!revealed) revealTraining();
-    else newDate();
-    return;
-  }
+function setQuizReady(){
+  quizReady = true;
+  cur = null;
+  quizLocked = false;
 
-  if(mode==="quiz"){
-    // skip
-    newDate();
-  }
+  clearResultColor();
+  quizMsg.textContent = "";
+  quizNextWrap.style.display = "none";
+  quizGrid.style.display = "grid";
+  setQuizButtonsEnabled(false);
+
+  // placeholder in date box
+  dateOut.textContent = "Pronto";
+
+  // timer display: show last stored value or —
+  stopLiveTimer();
+  tStart = null;
+  updateQuizStatsUI();
+  setBottom();
+}
+
+function startQuizSessionNow(){
+  // called by bottom Skip when ready
+  quizReady = false;
+  newDate(); // starts timer since qStatsOn and qPendingStart governs start; we'll force pending false+start here
 }
 
 /* ===========================
@@ -1001,7 +1006,7 @@ function clearSaved(){
 }
 
 /* ===========================
-   Quiz logic
+   Quiz buttons + error handling
 =========================== */
 function buildQuizButtons(){
   quizGrid.innerHTML = "";
@@ -1014,18 +1019,13 @@ function buildQuizButtons(){
     return b;
   };
 
-  quizGrid.appendChild(makeBtn(0, "dom")); // Domenica (2 col)
-
+  quizGrid.appendChild(makeBtn(0, "dom"));
   quizGrid.appendChild(makeBtn(1));
   quizGrid.appendChild(makeBtn(2));
   quizGrid.appendChild(makeBtn(3));
   quizGrid.appendChild(makeBtn(4));
   quizGrid.appendChild(makeBtn(5));
   quizGrid.appendChild(makeBtn(6));
-}
-
-function setQuizButtonsEnabled(on){
-  [...quizGrid.querySelectorAll("button")].forEach(b=>b.disabled=!on);
 }
 
 function clearErrors(){
@@ -1040,18 +1040,22 @@ function clearErrors(){
     if(r) r.checked = true;
     buildSetupRadios();
   }
-  newDate();
+  // in ready-state non generiamo date; altrimenti sì
+  if(!(mode==="quiz" && qStatsOn && quizReady)) newDate();
 }
 
 function resetQuizStats(){
   // Reset SOLO stats persistenti (non tocca streak/sessione)
-  if(!confirm("Reset statistiche quiz? (tempi + errori log)")) return;
+  if(!confirm("Reset statistiche quiz? (tempi + errori log + errori recenti)")) return;
 
   qTimesCorrect = [];
   saveArr(LS_QUIZ_TIMES_CORR, qTimesCorrect, 5000);
 
   qErrMap = {};
   saveErrMap(qErrMap);
+
+  qErrLog = [];
+  saveErrorLog(qErrLog);
 
   refreshCounts();
 
@@ -1064,8 +1068,15 @@ function resetQuizStats(){
   setBottom();
 }
 
+function pushErrorLogEntry(entry){
+  // keep last 20
+  qErrLog.push(entry);
+  if(qErrLog.length > 20) qErrLog = qErrLog.slice(qErrLog.length - 20);
+  saveErrorLog(qErrLog);
+}
+
 function updateErrorMapAfterAnswer(ok){
-  // confermato: errori persistenti SOLO con stats ON
+  // errori persistenti SOLO con stats ON
   if(!qStatsOn) return;
 
   const k = keyOf(cur.y,cur.m,cur.d);
@@ -1097,7 +1108,7 @@ function quizAnswer(chosenIdx){
   const correctIdx = weekday(cur.y,cur.m,cur.d);
   const ok = (chosenIdx === correctIdx);
 
-  // SESSION always-on
+  // session always
   qsAttempts += 1;
   if(ok){
     qsCorrect += 1;
@@ -1109,15 +1120,29 @@ function quizAnswer(chosenIdx){
   }
   refreshSessionUI();
 
-  // Persistent stats: time only if stats ON + correct
-  if(qStatsOn && ok && tStart){
-    const elapsed=(performance.now()-tStart)/1000;
+  // elapsed time (if timer running)
+  let elapsed = null;
+  if(tStart) elapsed = (performance.now()-tStart)/1000;
+
+  // persistent stats: correct-only times (stats ON only)
+  if(qStatsOn && ok && Number.isFinite(elapsed)){
     qTimesCorrect.push(elapsed);
     saveArr(LS_QUIZ_TIMES_CORR, qTimesCorrect, 5000);
   }
 
-  // Persistent error map: only if stats ON (already)
+  // persistent errors map (stats ON only)
   updateErrorMapAfterAnswer(ok);
+
+  // persistent error log (stats ON only, wrong only, include time)
+  if(qStatsOn && !ok && Number.isFinite(elapsed)){
+    pushErrorLogEntry({
+      ts: Date.now(),
+      y: cur.y, m: cur.m, d: cur.d,
+      chosen: chosenIdx,
+      correct: correctIdx,
+      t: elapsed
+    });
+  }
 
   // stop timer
   tStart=null;
@@ -1187,7 +1212,7 @@ function newDate(){
   revealed = false;
   quizLocked = false;
 
-  // show date according to format setting
+  // date format setting
   dateOut.textContent = fmtNum.checked ? fmtDate(cur.d,cur.m,cur.y) : fmtDateHuman(cur.d,cur.m,cur.y);
 
   // clear outputs
@@ -1208,25 +1233,15 @@ function newDate(){
   tStart = null;
 
   if(mode==="training" && tStatsOn){
-    if(tPendingStart){
-      tPendingStart=false;
-      tStart=performance.now();
-      startLiveTimer(tTimeTop);
-    }else{
-      tStart=performance.now();
-      startLiveTimer(tTimeTop);
-    }
+    if(tPendingStart){ tPendingStart=false; }
+    tStart=performance.now();
+    startLiveTimer(tTimeTop);
   }
 
   if(mode==="quiz" && qStatsOn){
-    if(qPendingStart){
-      qPendingStart=false;
-      tStart=performance.now();
-      startLiveTimer(qTimeTop);
-    }else{
-      tStart=performance.now();
-      startLiveTimer(qTimeTop);
-    }
+    if(qPendingStart){ qPendingStart=false; }
+    tStart=performance.now();
+    startLiveTimer(qTimeTop);
   }
 
   updateTrainingStatsUI();
@@ -1240,7 +1255,6 @@ function newDate(){
 function parseDateFlexible(s){
   const t = (s||"").trim();
 
-  // dd/mm/yyyy (anche con -, ., spazio)
   let m = t.match(/^(\d{1,2})[\/\-\.\s](\d{1,2})[\/\-\.\s](\d{4})$/);
   if(m){
     const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
@@ -1249,7 +1263,6 @@ function parseDateFlexible(s){
     return {d, m:mo, y};
   }
 
-  // ddmmyyyy (8 cifre)
   const digits = t.replace(/\D/g,"");
   if(digits.length===8){
     const d = Number(digits.slice(0,2));
@@ -1281,22 +1294,15 @@ function doVerify(){
     `<div class="leapNote">${leap ? "bisestile" : "non bisestile"}</div>`;
 }
 
-// robust autoformat from digits
 function verifyAutoFormat(){
   const digits = (verifyIn.value || "").replace(/\D/g,"").slice(0,8);
   let out = "";
 
-  if(digits.length <= 2){
-    out = digits;
-  }else if(digits.length <= 4){
-    out = digits.slice(0,2) + "/" + digits.slice(2);
-  }else{
-    out = digits.slice(0,2) + "/" + digits.slice(2,4) + "/" + digits.slice(4);
-  }
+  if(digits.length <= 2) out = digits;
+  else if(digits.length <= 4) out = digits.slice(0,2) + "/" + digits.slice(2);
+  else out = digits.slice(0,2) + "/" + digits.slice(2,4) + "/" + digits.slice(4);
 
-  if(verifyIn.value !== out){
-    verifyIn.value = out;
-  }
+  if(verifyIn.value !== out) verifyIn.value = out;
 }
 
 /* ===========================
@@ -1311,7 +1317,7 @@ function onStatsToggleChanged(){
 
     stopLiveTimer();
     tStart = null;
-    tPendingStart = tStatsOn ? true : false; // parte dalla prossima data
+    tPendingStart = tStatsOn ? true : false;
 
     updateTrainingStatsUI();
     setBottom();
@@ -1326,8 +1332,14 @@ function onStatsToggleChanged(){
 
     stopLiveTimer();
     tStart = null;
-    qPendingStart = qStatsOn ? true : false; // parte dalla prossima data
 
+    // Se attivi stats in quiz: non partire subito -> pending true (parte dalla prossima data)
+    qPendingStart = qStatsOn ? true : false;
+
+    // Se sei già in quiz e vuoi comportamento “non mi sorprendere”,
+    // NON cambiamo la data corrente, ma non parte il timer finché non vai avanti.
+    // Se vuoi ancora più rigido: potresti entrare in ready-state anche qui,
+    // ma tu lo hai chiesto esplicitamente per "passo alla tab".
     refreshCounts();
     updateQuizStatsUI();
     setBottom();
@@ -1344,7 +1356,8 @@ tabVerify.addEventListener("click", ()=>setMode("verify"));
 
 statsToggle.addEventListener("change", onStatsToggleChanged);
 
-mode1900.addEventListener("change", ()=>{ applyMode1900(); if(mode!=="verify") newDate(); });
+mode1900.addEventListener("change", ()=>{ applyMode1900(); if(mode!=="verify" && !(mode==="quiz" && qStatsOn && quizReady)) newDate(); });
+
 fmtNum.addEventListener("change", ()=>{
   if(cur && mode!=="verify"){
     dateOut.textContent = fmtNum.checked ? fmtDate(cur.d,cur.m,cur.y) : fmtDateHuman(cur.d,cur.m,cur.y);
@@ -1367,6 +1380,13 @@ tResetBtn.addEventListener("click", ()=>{
 });
 
 qResetBtn.addEventListener("click", resetQuizStats);
+
+qErrClearBtn.addEventListener("click", ()=>{
+  if(!confirm("Svuotare errori recenti?")) return;
+  qErrLog = [];
+  saveErrorLog(qErrLog);
+  updateQuizStatsUI();
+});
 
 verifyBtn.addEventListener("click", doVerify);
 verifyIn.addEventListener("keydown", (e)=>{ if(e.key==="Enter") doVerify(); });
